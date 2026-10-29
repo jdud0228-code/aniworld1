@@ -39,7 +39,9 @@ jobs:
             ['save on page hide', /addEventListener\('pagehide',savePositionOnHide\)/],
             ['clear progress at end', /ended',\s*\(\)=>\{updatePlayButton\(\);try\{localStorage\.removeItem\(positionKey\)\}/],
             ['bounded resume seek', /const safeTarget=Math\.max\(0,Math\.min\(target,Math\.max\(0,video\.duration-2\)\)\)/],
-            ['in-page HLS error guidance', /обходить их ANIWorld не будет/]
+            ['in-page HLS error guidance', /обходить их ANIWorld не будет/],
+            ['automatic fallback after fatal HLS error', /if\(tryFallbackRendition\(\)\)return/],
+            ['fallback does not loop through previously tried variants', /candidates\.find\(item=>!triedRenditionUrls\.has\(item\.url\)\)/]
           ];
           for (const [label, pattern] of checks) {
             assert.match(html, pattern, `Missing required player behavior: ${label}`);
