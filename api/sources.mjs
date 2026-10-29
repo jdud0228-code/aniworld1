@@ -23,7 +23,7 @@ function getConfig() {
 
 function authorized(request, expectedToken) {
   const header = request.headers.get("authorization") || "";
-  const match = /^Bearer\\s+([^\\s]+)$/i.exec(header);
+  const match = /^Bearer\s+([^\s]+)$/i.exec(header);
   if (!match || !expectedToken) return false;
   const supplied = match[1];
   if (supplied.length !== expectedToken.length) return false;
@@ -49,11 +49,19 @@ function cleanSource(value) {
 function validKey(key) {
   return typeof key === "string" && key.length > 0 && key.length <= 300 &&
     key.trim() === key && key !== "__proto__" && key !== "constructor" &&
-    key !== "prototype" && !/[\\u0000-\\u001f\\u007f]/.test(key);
+    key !== "prototype" && !/[\u0000-\u001f\u007f]/.test(key);
 }
 
 async function readSources() {
-  const result = await get(SOURCES_PATH, { access: "private" });
+  let result;
+  try {
+    result = await get(SOURCES_PATH, { access: "private" });
+  } catch (error) {
+    // A missing blob is the normal initial state before the first source is saved.
+    const message = String(error?.message || "");
+    if (/not found|does not exist|404/i.test(message)) return Object.create(null);
+    throw error;
+  }
   if (!result || result.statusCode === 404) return Object.create(null);
   if (result.statusCode !== 200 || !result.stream) throw new Error("Blob read failed");
   const text = await new Response(result.stream).text();
