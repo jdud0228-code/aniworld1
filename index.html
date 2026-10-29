@@ -60,6 +60,22 @@ const data=[
 ];
 function card(x,i){return `<article class="card" data-title="${x.title.toLowerCase()}" data-genres="${x.genres.join(' ')}" onclick="openDetail(${i})"><div class="poster" style="--poster:${x.bg}"><span class="art">${x.cover?`<img src="${x.cover}" alt="${x.title} poster" loading="lazy">`:x.art}</span><span class="score">★ ${x.score}</span><span class="kind">${x.type.toUpperCase()}</span><strong>${x.title}</strong></div><h3>${x.title}</h3><div class="meta"><b>${x.year}</b> · ${x.type} · ${x.genres[0]}</div></article>`}
 function render(){document.getElementById('ongoing').innerHTML=data.filter(x=>x.type==='Аниме'&&x.year>=2025).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('new').innerHTML=data.slice(5,9).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('mangaCards').innerHTML=data.filter(x=>x.type==='Манга').map(x=>card(x,data.indexOf(x))).join('');document.getElementById('classic').innerHTML=data.slice(8,12).map(x=>card(x,data.indexOf(x))).join('')}
+function showPopularSources(status){
+ const q=encodeURIComponent(selectedSearchTitle||selectedTitle||'аниме');
+ const providers=[
+  ['Crunchyroll','https://www.crunchyroll.com/search?q='+q],
+  ['Netflix','https://www.netflix.com/search?q='+q],
+  ['Prime Video','https://www.primevideo.com/search/ref=atv_nb_sr?phrase='+q],
+  ['YouTube · официальные каналы','https://www.youtube.com/results?search_query='+encodeURIComponent((selectedSearchTitle||selectedTitle||'anime')+' official full episode')]
+ ];
+ const frame=document.getElementById('playerFrame');
+ frame.innerHTML='';
+ const heading=document.createElement('p');heading.textContent='Популярные официальные площадки';heading.style.cssText='color:#d7d5e2;font-weight:800;margin:14px 0 10px';frame.appendChild(heading);
+ const row=document.createElement('div');row.style.cssText='display:flex;gap:10px;flex-wrap:wrap';
+ providers.forEach(([label,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label;a.style.cssText='display:inline-block;padding:11px 14px;border-radius:10px;background:#24242e;border:1px solid #424252;color:#fff;text-decoration:none;font-weight:750';row.appendChild(a)});
+ frame.appendChild(row);
+ status.textContent=status+' Доступность зависит от региона и лицензии.';
+}
 let selectedTitle=null, selectedEpisode=1, selectedVoice='AniLibria', selectedType='Аниме', selectedRemoteCode=null, selectedSearchTitle=null;
 function openDetail(i){
   let x=data[i]; selectedTitle=x.title; selectedEpisode=1; selectedVoice=(x.voices&&x.voices[0])||'AniLibria'; selectedType=x.type; selectedRemoteCode=x.remoteCode||x.code||x.alias||null; selectedSearchTitle=x.searchTitle||x.title;
@@ -136,14 +152,14 @@ async function openPlayer(){
            return;
          }
        }
-       status.textContent='Каталог не предоставил доступный поток для этой серии. Добавь свой разрешённый HTTPS-источник через «Настроить источник серии».';
+       showPopularSources(status); status.textContent='Каталог не предоставил доступный поток для этой серии. Открой одну из популярных официальных площадок ниже или добавь собственный разрешённый HTTPS-источник. Доступность зависит от региона и лицензии.';
        return;
      }catch(error){
-       status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Можно добавить собственный разрешённый HTTPS-источник через «Настроить источник серии».';
+       showPopularSources(status); status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Ниже доступны ссылки на популярные официальные площадки; можно также добавить собственный разрешённый HTTPS-источник.';
        return;
      }
    }
-   status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Добавь разрешённый HTTPS-источник через «Настроить источник серии».`;
+   showPopularSources(status); status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Выбери официальную площадку ниже или добавь разрешённый HTTPS-источник.`;
    return;
  }
  try{
