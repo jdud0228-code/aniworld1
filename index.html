@@ -314,8 +314,22 @@ function buildAniVideoPlayer(options){
   video.play().catch(()=>{hideLoading();setPlayerStatus('Качество переключено · нажми ▶ для воспроизведения.')});
  }
  quality.addEventListener('change',()=>{
-  if(quality.value.indexOf('level:')===0&&hls){hls.currentLevel=Number(quality.value.split(':')[1]);showLoading('Устанавливаю качество · '+quality.options[quality.selectedIndex].textContent+'…')}
-  else if(quality.value.indexOf('rendition:')===0)loadRendition(Number(quality.value.split(':')[1]));
+  if(!quality.value)return;
+  if(quality.value==='-1'&&hls){
+   // Restore adaptive bitrate selection rather than leaving the previous manual level pinned.
+   hls.nextLevel=-1;
+   hls.currentLevel=-1;
+   setPlayerStatus('Качество · Авто: ANIWorld выбирает уровень по доступной скорости соединения.');
+   return;
+  }
+  if(quality.value.indexOf('level:')===0&&hls){
+   const levelIndex=Number(quality.value.split(':')[1]);
+   if(Number.isInteger(levelIndex)&&levelIndex>=0&&levelIndex<hls.levels.length){
+    // nextLevel switches at the next segment with less disruption than flushing the current buffer.
+    hls.nextLevel=levelIndex;
+    showLoading('Переключаю качество · '+quality.options[quality.selectedIndex].textContent+'…');
+   }
+  }else if(quality.value.indexOf('rendition:')===0)loadRendition(Number(quality.value.split(':')[1]));
  });
  seek.addEventListener('input',()=>{if(Number.isFinite(video.duration)&&video.duration>0)video.currentTime=(Number(seek.value)/1000)*video.duration});
  play.addEventListener('click',()=>video.paused?video.play().catch(()=>setPlayerStatus('Браузер заблокировал запуск. Нажми ▶ ещё раз.')):video.pause());
