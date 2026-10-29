@@ -179,9 +179,11 @@ function selectVoice(v,btn){
  if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
 }
 let activePlayerCleanup = null;
+let activePlayerGeneration = 0;
 let hlsLibraryPromise = null;
 
 function clearPlayerFrame(){
+ activePlayerGeneration++;
  if(typeof activePlayerCleanup==='function'){activePlayerCleanup();activePlayerCleanup=null}
  const frame=document.getElementById('playerFrame');
  if(frame) frame.replaceChildren();
@@ -233,6 +235,7 @@ function qualityLabel(level,index,levels){
  return label;
 }
 function buildAniVideoPlayer(options){
+ const generation=options.generation;
  const frame=document.getElementById('playerFrame'),title=options.title||'Видео ANIWorld',episode=options.episode||selectedEpisode;
  const sourceUrl=options.sourceUrl,renditions=(options.renditions||[]).filter((item,index,array)=>item&&item.url&&array.findIndex(other=>other.url===item.url)===index);
  const shell=document.createElement('section');
@@ -262,9 +265,9 @@ function buildAniVideoPlayer(options){
  const fullscreen=playerButton('На весь экран','fullscreen');
  right.append(pip,fullscreen);
  let hls=null,networkRetryCount=0,mediaRecoveryAttempted=false,pendingSeek=null,isSwitching=false,nativeQualityUrl=sourceUrl;
- function showLoading(message){errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
- function hideLoading(){loading.hidden=true}
- function showError(message){loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
+ function showLoading(message){if(generation!==activePlayerGeneration)return;errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
+ function hideLoading(){if(generation===activePlayerGeneration)loading.hidden=true}
+ function showError(message){if(generation!==activePlayerGeneration)return;loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
  function updatePlayButton(){const playing=!video.paused&&!video.ended;play.innerHTML=playerIcon(playing?'pause':'play');play.setAttribute('aria-label',playing?'Приостановить':'Воспроизвести');play.title=playing?'Приостановить':'Воспроизвести';play.setAttribute('aria-pressed',String(playing))}
  function updateTime(){
   const now=Number(video.currentTime)||0,total=video.duration;
@@ -368,8 +371,7 @@ function buildAniVideoPlayer(options){
   const messages={1:'Воспроизведение остановлено.',2:'Связь с источником прервалась. Проверь доступность потока.',3:'Браузер не смог декодировать этот видеоформат.',4:'Источник не поддерживает этот формат или недоступен в браузере.'};
   showError(messages[video.error.code]||'Не удалось воспроизвести видео. Проверьте ссылку и разрешения источника.');
  });
- retry.addEventListener('click',()=>openPlayer());
- updatePlayButton();updateVolume();
+  updatePlayButton();updateVolume();
  if(!options.isHls){
   showLoading('Подключаю видео…');video.src=sourceUrl;video.load();
   video.play().catch(()=>{if(!video.error){hideLoading();setPlayerStatus('Нажми ▶, если браузер заблокировал автозапуск.')}});
@@ -380,6 +382,7 @@ function buildAniVideoPlayer(options){
    video.play().catch(()=>{if(!video.error){hideLoading();setPlayerStatus('HLS-поток подключён · нажми ▶ для запуска.')}});
   }else{
    loadHlsLibrary().then(HlsClass=>{
+    if(generation!==activePlayerGeneration||!shell.isConnected)return;
     if(!HlsClass.isSupported())throw new Error('Этот браузер не поддерживает HLS-воспроизведение.');
     hls=new HlsClass({enableWorker:true,lowLatencyMode:false,backBufferLength:30});
     hls.on(HlsClass.Events.MANIFEST_PARSED,()=>{
@@ -440,9 +443,11 @@ async function openPlayer(){
  if(selectedType==='Манга')return;
  const box=document.getElementById('playerSetup'),status=document.getElementById('playerStatus');
  box.style.display='block';clearPlayerFrame();
+ const requestId=activePlayerGeneration;
  status.textContent='Проверяю источник: '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'…';
  box.scrollIntoView({behavior:'smooth',block:'nearest'});
  try{await loadSharedSources()}catch{}
+ if(requestId!==activePlayerGeneration)return;
  const saved=getSavedSource();
  if(saved&&saved.url){
   try{
@@ -451,7 +456,7 @@ async function openPlayer(){
    const type=saved.type==='auto'?(/\.(mp4|webm|ogg|m3u8)(?:$|[?#])/i.test(url.href)?'video':'embed'):saved.type;
    if(type==='embed'){buildAniEmbedPlayer(url.href,selectedTitle,selectedEpisode);return}
    const isHls=/\.m3u8(?:$|[?#])/i.test(url.href);
-   buildAniVideoPlayer({title:selectedTitle,episode:selectedEpisode,sourceUrl:url.href,isHls,renditions:[]});
+   buildAniVideoPlayer({title:selectedTitle,episode:selectedEpisode,sourceUrl:url.href,isHls,renditions:[],generation:requestId});
    return;
   }catch(error){
    showPopularSources(status);status.textContent='Источник не удалось открыть: '+error.message+' Внешние сайты не открываем.';
@@ -468,13 +473,18 @@ async function openPlayer(){
   if(!remoteCode){
    const searchResponse=await fetch('/api/anilibria?action=search&query='+encodeURIComponent(selectedSearchTitle),{headers:{Accept:'application/json'},cache:'no-store'});
    if(!searchResponse.ok)throw new Error('Онлайн-каталог временно недоступен ('+searchResponse.status+').');
-   const results=await searchResponse.json(),first=Array.isArray(results)?results[0]:null;
+   const results=await searchResponse.json();
+   if(requestId!==activePlayerGeneration)return;
+   const first=Array.isArray(results)?results[0]:null;
    remoteCode=first?.code||first?.alias||first?.id;
   }
   if(!remoteCode)throw new Error('Не удалось найти тайтл в онлайн-каталоге.');
   const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(remoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
+  if(requestId!==activePlayerGeneration)return;
   if(!response.ok)throw new Error('Каталог временно недоступен ('+response.status+').');
-  const release=await response.json(),rawList=release?.player?.list||release?.player?.episodes||release?.episodes||[];
+  const release=await response.json();
+  if(requestId!==activePlayerGeneration)return;
+  const rawList=release?.player?.list||release?.player?.episodes||release?.episodes||[];
   const list=Array.isArray(rawList)?rawList:Object.entries(rawList).map(([key,value])=>({episode:value?.episode??value?.ordinal??key,...value}));
   const episode=list.find((item,index)=>Number(item.episode??item.ordinal??item.number??index+1)===Number(selectedEpisode))||list[selectedEpisode-1];
   if(!episode)throw new Error('У каталога нет данных выбранной серии.');
@@ -489,8 +499,9 @@ async function openPlayer(){
   if(!sourceUrl)throw new Error('Каталог не предоставил доступный HTTPS-поток для этой серии.');
   if(!isHls&&renditions.some(item=>item.url===sourceUrl))isHls=true;
   status.textContent='Запускаю ANIWorld Player…';
-  buildAniVideoPlayer({title:selectedTitle,episode:selectedEpisode,sourceUrl,isHls,renditions});
+  buildAniVideoPlayer({title:selectedTitle,episode:selectedEpisode,sourceUrl,isHls,renditions,generation:requestId});
  }catch(error){
+  if(requestId!==activePlayerGeneration)return;
   showPopularSources(status);status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Внешние сайты не открываем. Можно повторить попытку позже или подключить разрешённый HTTPS-источник.';
  }
 }
