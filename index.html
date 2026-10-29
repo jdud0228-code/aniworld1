@@ -62,15 +62,18 @@ function card(x,i){return `<article class="card" data-title="${x.title.toLowerCa
 function render(){document.getElementById('ongoing').innerHTML=data.filter(x=>x.type==='Аниме'&&x.year>=2025).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('new').innerHTML=data.slice(5,9).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('mangaCards').innerHTML=data.filter(x=>x.type==='Манга').map(x=>card(x,data.indexOf(x))).join('');document.getElementById('classic').innerHTML=data.slice(8,12).map(x=>card(x,data.indexOf(x))).join('')}
 function showPopularSources(status){
  const q=encodeURIComponent(selectedSearchTitle||selectedTitle||'аниме');
+ const mangaQ=encodeURIComponent(selectedSearchTitle||selectedTitle||'манга');
  const providers=[
-  ['Crunchyroll','https://www.crunchyroll.com/search?q='+q],
-  ['Netflix','https://www.netflix.com/search?q='+q],
-  ['Prime Video','https://www.primevideo.com/search/ref=atv_nb_sr?phrase='+q],
-  ['YouTube · официальные каналы','https://www.youtube.com/results?search_query='+encodeURIComponent((selectedSearchTitle||selectedTitle||'anime')+' official full episode')]
+  ['AniLiberty · аниме','https://anilibria.top/'],
+  ['AnimeGO · аниме','https://animego.me/'],
+  ['MangaLib · манга','https://mangalib.me/'],
+  ['Remanga · манга','https://remanga.org/'],
+  ['Shikimori · каталог','https://shikimori.one/animes?search='+q],
+  ['Поиск манги','https://mangalib.me/search?keyword='+mangaQ]
  ];
  const frame=document.getElementById('playerFrame');
  frame.innerHTML='';
- const heading=document.createElement('p');heading.textContent='Популярные официальные площадки';heading.style.cssText='color:#d7d5e2;font-weight:800;margin:14px 0 10px';frame.appendChild(heading);
+ const heading=document.createElement('p');heading.textContent='Популярные площадки СНГ: аниме и манга';heading.style.cssText='color:#d7d5e2;font-weight:800;margin:14px 0 10px';frame.appendChild(heading);
  const row=document.createElement('div');row.style.cssText='display:flex;gap:10px;flex-wrap:wrap';
  providers.forEach(([label,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label;a.style.cssText='display:inline-block;padding:11px 14px;border-radius:10px;background:#24242e;border:1px solid #424252;color:#fff;text-decoration:none;font-weight:750';row.appendChild(a)});
  frame.appendChild(row);
