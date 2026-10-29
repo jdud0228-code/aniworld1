@@ -111,8 +111,7 @@ async function openPlayer(){
        const mediaUrl=episode?.url||episode?.src||hls.fhd||hls.hd||hls.sd||episode?.hls_1080||episode?.hls_720||episode?.hls_480;
        if(mediaUrl&&typeof mediaUrl==='string'&&/^https:\/\//i.test(mediaUrl)){
          const source={url:mediaUrl,type:'video'};
-         const mediaHost=new URL(mediaUrl).hostname;
-         if(mediaHost===location.hostname||mediaHost.endsWith('.aniliberty.top')||mediaHost.endsWith('.anilibria.top')){
+         if(new URL(mediaUrl).protocol==='https:'){
            status.textContent='Каталог вернул ссылку на медиа, но она может требовать разрешения самого источника. Проверяю воспроизведение…';
            const video=document.createElement('video');video.controls=true;video.playsInline=true;video.autoplay=true;video.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px';frame.appendChild(video);
            video.onerror=()=>{status.textContent='Источник не разрешил воспроизведение в браузере. Нужна разрешённая ссылка или встроенный плеер.'};
