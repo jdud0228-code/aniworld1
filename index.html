@@ -130,8 +130,9 @@ async function openPlayer(){
        const list=Array.isArray(rawList)?rawList:Object.entries(rawList).map(([key,value])=>({episode:value?.episode??value?.ordinal??key,...value}));
        const episode=list.find((item,index)=>Number(item.episode??item.ordinal??item.number??index+1)===Number(selectedEpisode))||list[selectedEpisode-1];
        const hls=episode?.hls||{};
-       // Prefer 720p first for faster startup; retain alternate renditions for fallback.
-       let mediaUrl=episode?.url||episode?.src||hls.hd||hls.sd||hls.fhd||episode?.hls_720||episode?.hls_480||episode?.hls_1080;
+       // Prefer 720p first, keep other published renditions as fallbacks.
+       const mediaCandidates=[episode?.url,episode?.src,hls.hd,hls.sd,hls.fhd,episode?.hls_720,episode?.hls_480,episode?.hls_1080].filter((url,index,all)=>typeof url==='string'&&/^https:\/\//i.test(url)&&all.indexOf(url)===index);
+       let mediaUrl=mediaCandidates[0];
        if(typeof mediaUrl==='string'&&mediaUrl.startsWith('/')){
          const host=release?.player?.host;
          const hostUrl=typeof host==='string'?host:(host?.hls||host?.url||'');
@@ -148,7 +149,7 @@ async function openPlayer(){
              if(video.canPlayType('application/vnd.apple.mpegurl')) video.src=source.url;
              else {
                const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
-               script.onload=()=>{if(window.Hls&&Hls.isSupported()){const h=new Hls({enableWorker:true,lowLatencyMode:false,backBufferLength:30});h.loadSource(source.url);h.attachMedia(video);let fallbackTried=false;h.on(Hls.Events.MANIFEST_PARSED,()=>{status.textContent='Поток найден. Плеер готов к воспроизведению; нажми ▶, если автозапуск заблокирован.';});h.on(Hls.Events.ERROR,(_,d)=>{if(!d.fatal)return;if(d.type===Hls.ErrorTypes.NETWORK_ERROR){status.textContent='Не удаётся получить поток или его сегменты. Проверяю повторное подключение…';if(!fallbackTried){fallbackTried=true;h.startLoad();return;}}else if(d.type===Hls.ErrorTypes.MEDIA_ERROR){status.textContent='Восстанавливаю видеопоток…';h.recoverMediaError();return;}status.textContent='Поток найден, но источник отклонил загрузку. Возможны ограничения CORS, региона или доступа; проксировать и обходить ограничения источника сайт не будет.';});}else{video.src=source.url;status.textContent='Встроенный видеопоток загружен. Если воспроизведение не начнётся, браузер может не поддерживать HLS.';}};
+               script.onload=()=>{if(window.Hls&&Hls.isSupported()){const h=new Hls({enableWorker:true,lowLatencyMode:false,backBufferLength:30});let candidateIndex=0,retriedCurrent=false;h.loadSource(mediaCandidates[candidateIndex]||source.url);h.attachMedia(video);h.on(Hls.Events.MANIFEST_PARSED,()=>{status.textContent='Поток найден. Плеер готов к воспроизведению; нажми ▶, если автозапуск заблокирован.';});h.on(Hls.Events.ERROR,(_,d)=>{if(!d.fatal)return;if(d.type===Hls.ErrorTypes.NETWORK_ERROR){if(!retriedCurrent){retriedCurrent=true;status.textContent='Повторяю загрузку видеопотока…';h.startLoad();return;}if(candidateIndex<mediaCandidates.length-1){candidateIndex++;retriedCurrent=false;status.textContent='Пробую альтернативное качество видео ('+(candidateIndex+1)+'/'+mediaCandidates.length+')…';h.loadSource(mediaCandidates[candidateIndex]);return;}}else if(d.type===Hls.ErrorTypes.MEDIA_ERROR){status.textContent='Восстанавливаю видеопоток…';h.recoverMediaError();return;}status.textContent='Поток найден, но источник отклонил загрузку. Возможны ограничения CORS, региона или доступа; обходить ограничения источника сайт не будет.';});}else{video.src=source.url;status.textContent='Встроенный видеопоток загружен. Если воспроизведение не начнётся, браузер может не поддерживать HLS.';}};
                script.onerror=()=>{status.textContent='Не удалось загрузить HLS-плеер.'};document.head.appendChild(script);
              }
            }else video.src=source.url;
