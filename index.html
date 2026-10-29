@@ -24,19 +24,19 @@
 <div style="margin-top:12px"><button class="secondary" type="button" id="toggleSourceAdmin">⚙ Настроить источник серии</button></div>
 <div id="sourceAdmin" style="display:none;margin-top:12px;padding:16px;border:1px solid #343541;border-radius:14px;background:#0b0c11">
 <h3 style="margin-top:0">Источник для выбранной серии</h3>
-<p style="font-size:13px;color:#aaaebd">Добавь прямую ссылку на видео (.mp4/.m3u8) или ссылку на встраиваемый плеер, который разрешено показывать на ANIWorld. Ссылка сохраняется только в этом браузере.</p>
+<p style="font-size:13px;color:#aaaebd">Добавь прямую ссылку на MP4/HLS или iframe-плеер, который у тебя есть право использовать. Для прямого видео нужны разрешения источника на воспроизведение; для HLS — CORS, для iframe — разрешённое встраивание.</p><div class="notice" id="sourceStoreNotice" style="margin:12px 0">Общее хранилище не подключено. Ссылки сохраняются только в этом браузере и не видны другим посетителям. Для общей библиотеки нужен защищённый серверный источник; требования описаны в README_RU.txt.</div>
 <label style="display:block;margin:10px 0 5px">Ссылка на видео или встраиваемый плеер</label>
 <input id="sourceUrlInput" type="url" placeholder="https://…" style="width:100%;box-sizing:border-box;padding:12px;border-radius:9px;border:1px solid #343541;background:#15161d;color:#fff">
 <label style="display:block;margin:10px 0 5px">Тип источника</label>
 <select id="sourceTypeInput" style="width:100%;padding:12px;border-radius:9px;border:1px solid #343541;background:#15161d;color:#fff"><option value="auto">Определить автоматически</option><option value="video">Прямое видео (MP4 / HLS)</option><option value="embed">Встраиваемый плеер (iframe)</option></select>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" type="button" id="saveSourceBtn">Сохранить источник</button><button class="secondary" type="button" id="deleteSourceBtn">Удалить источник</button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" type="button" id="saveSourceBtn">Сохранить в этом браузере</button><button class="secondary" type="button" id="deleteSourceBtn">Удалить источник</button></div>
 <div id="sourceAdminStatus" style="font-size:12px;color:#aeb3c2;margin-top:10px"></div>
 </div>
 <div class="player-setup" id="playerSetup" style="display:none;margin-top:16px;padding:14px;border:1px solid #343541;border-radius:14px;background:#0b0c11">
 <div id="playerStatus" style="font-size:14px;color:#c8c9d4;margin-bottom:12px">Подготовка встроенного плеера…</div>
 <div id="playerFrame" style="margin-top:12px"></div>
 <div id="playerControls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px">
-<button class="secondary" type="button" id="retrySourceBtn">↻ Повторить поиск</button>
+<button class="secondary" type="button" id="retrySourceBtn">↻ Проверить источник</button>
 <button class="secondary" type="button" id="closeEmbeddedPlayerBtn">Закрыть плеер</button>
 </div>
 <p style="font-size:12px;color:#9294a4;margin:10px 0 0">Видео воспроизводится внутри ANIWorld, если подключённый источник разрешает прямой поток. Автозапуск со звуком может блокироваться браузером.</p>
@@ -82,100 +82,69 @@ function selectEpisode(n,btn){
  selectedEpisode=n; document.querySelectorAll('#episodes .episode').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
  document.getElementById('sourceNotice').textContent=`Выбрана ${selectedType==='Манга'?'глава':'серия'} ${n} · озвучка ${selectedVoice}.`;
  document.getElementById('playerFrame').innerHTML='';
+ if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
 }
 function selectVoice(v,btn){
  selectedVoice=v; document.querySelectorAll('#voices .voice').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
  document.getElementById('sourceNotice').textContent=`Выбрана ${selectedType==='Манга'?'глава':'серия'} ${selectedEpisode} · озвучка ${v}.`;
  document.getElementById('playerFrame').innerHTML='';
+ if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
 }
-async function openPlayer(){
+function openPlayer(){
  if(selectedType==='Манга') return;
  const box=document.getElementById('playerSetup'), status=document.getElementById('playerStatus'), frame=document.getElementById('playerFrame');
  box.style.display='block'; frame.innerHTML='';
- status.textContent=`Ищу доступный поток: ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}…`;
+ status.textContent=`Проверяю источник: ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}…`;
  box.scrollIntoView({behavior:'smooth',block:'nearest'});
  const saved=getSavedSource();
- if(saved && saved.url){
-   try{
-     const u=new URL(saved.url); if(!['http:','https:'].includes(u.protocol)) throw new Error('Разрешены только ссылки http/https.');
-     const type=saved.type==='auto'?(/\.(mp4|webm|ogg|m3u8)(?:$|[?#])/i.test(u.href)?'video':'embed'):saved.type;
-     if(type==='embed'){
-       const iframe=document.createElement('iframe'); iframe.src=u.href; iframe.title=`${selectedTitle} — ${selectedVoice}`; iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen'; iframe.allowFullscreen=true; iframe.referrerPolicy='strict-origin-when-cross-origin'; iframe.style.cssText='width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000'; frame.appendChild(iframe);
-       status.textContent=`Встроенный источник · ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}`;
-     } else {
-       const v=document.createElement('video'); v.controls=true; v.playsInline=true; v.autoplay=true; v.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px'; frame.appendChild(v);
-       if(/\.m3u8(?:\?|$)/i.test(u.href)){
-         if(v.canPlayType('application/vnd.apple.mpegurl')) v.src=u.href;
-         else {const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';script.onload=()=>{if(window.Hls&&Hls.isSupported()){const hp=new Hls();hp.loadSource(u.href);hp.attachMedia(v)}else v.src=u.href};script.onerror=()=>{status.textContent='Не удалось загрузить HLS-плеер.'};document.head.appendChild(script)}
-       } else v.src=u.href;
-       status.textContent=`Встроенный плеер · ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}`; v.play().catch(()=>{}); v.onerror=()=>status.textContent='Видео не загрузилось. Проверь ссылку или ограничения источника.';
-     }
-     return;
-   } catch(e){ status.textContent='Источник не удалось открыть: '+e.message; return; }
- }
-
- const sources={
-  'AniLibria':{search:'https://api.anilibria.tv/v3/title/search?search=',base:'https://api.anilibria.tv/v3'},
-  'AniDub':{catalog:'https://anidub.com/'},
-  'Студийная Банда':{catalog:'https://studio.band/'},
-  'AnimeVost':{catalog:'https://animevost.org/'},
-  'Dream Cast':{catalog:'https://dream-cast.ru/'},
-  'Reanimedia':{catalog:'https://reanimedia.ru/'}
- };
- if(selectedVoice!=='AniLibria'){
-   status.textContent=`Для озвучки «${selectedVoice}» пока не подключён подтверждённый поток. Встроенный плеер готов, но я не буду подменять видео ссылкой на чужой сайт.`;
+ if(!saved||!saved.url){
+   status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Каталог AniLiberty используется только для метаданных; его media-поля не подставляются в плеер автоматически. Ответ 403 не обходим. Добавь разрешённый HTTPS-источник через «Настроить источник серии».`;
    return;
  }
  try{
-   const q=selectedTitle==='Свадьба светлячков'?'Hotaru no Yomeiri':selectedTitle;
-   const r=await fetch('/api/anilibria?action=search&query='+encodeURIComponent(q));
-   if(!r.ok) throw new Error('Источник каталога временно недоступен.');
-   const result=await r.json();
-   let list=Array.isArray(result)?result:(result?.list||result?.data||result?.items||result?.titles||[]);
-   const norm=s=>String(s||'').toLowerCase().replace(/[^a-zа-яё0-9]/gi,'');
-   const item=list.find(t=>norm(t?.names?.ru||t?.names?.main||t?.name||t?.title).includes(norm(q))||norm(q).includes(norm(t?.names?.ru||t?.name||t?.title)));
-   if(!item) throw new Error('В каталоге не найден подходящий релиз.');
-   let detail=item;
-   if(item.id||item.code){
-     const d=await fetch('/api/anilibria?action=title&'+(item.id?'id='+encodeURIComponent(item.id):'code='+encodeURIComponent(item.code))); 
-     if(d.ok){const v=await d.json();detail=v?.data||v?.title||v||item;}
+   const u=new URL(saved.url);
+   if(u.protocol!=='https:') throw new Error('Нужна HTTPS-ссылка на источник.');
+   const type=saved.type==='auto'?(/\.(mp4|webm|ogg|m3u8)(?:$|[?#])/i.test(u.href)?'video':'embed'):saved.type;
+   if(type==='embed'){
+     const iframe=document.createElement('iframe'); iframe.src=u.href; iframe.title=`${selectedTitle} — ${selectedVoice}`; iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen'; iframe.allowFullscreen=true; iframe.referrerPolicy='strict-origin-when-cross-origin'; iframe.style.cssText='width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000'; frame.appendChild(iframe);
+     const fallback=document.createElement('a'); fallback.href=u.href; fallback.target='_blank'; fallback.rel='noopener noreferrer'; fallback.textContent='Открыть источник в новой вкладке'; fallback.style.cssText='display:inline-block;margin-top:10px;color:#ff7890;font-weight:700'; frame.appendChild(fallback);
+     status.textContent=`Встроенный источник · ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}. Если хост запрещает iframe, открой ссылку в новой вкладке.`;
+     return;
    }
-   const player=detail.player||detail.player_data||{};
-   let episodes=player.list||player.playlist||player.episodes||detail.playlist||[];
-   if(!Array.isArray(episodes))episodes=Object.values(episodes||{});
-   const ep=episodes.find(e=>Number(e.episode??e.id??String(e.name||e.title||'').match(/\d+(?:\.\d+)?/)?.[0])===Number(selectedEpisode));
-   if(!ep)throw new Error('У релиза нет доступного потока для выбранной серии.');
-   let stream=ep.hls||ep;
-   let src=stream.fhd||stream.fullhd||stream.hd||stream.sd||ep.hd||ep.fullhd||ep.sd||ep.srcHd||ep.srcSd;
-   if(!src)throw new Error('Каталог не вернул прямой поток этой серии.');
-   if(src.startsWith('/'))src='https://cache.libria.fun'+src;
-   if(!/^https?:\/\//i.test(src))src='https://cache.libria.fun/'+src.replace(/^\/+/,'');
-   const v=document.createElement('video');v.controls=true;v.playsInline=true;v.autoplay=true;v.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px';frame.appendChild(v);
-   if(/\.m3u8(?:\?|$)/i.test(src)){
-     if(v.canPlayType('application/vnd.apple.mpegurl'))v.src=src;
+   const v=document.createElement('video'); v.controls=true; v.playsInline=true; v.autoplay=true; v.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px'; frame.appendChild(v);
+   v.onerror=()=>{status.textContent='Видео не загрузилось. Проверь ссылку, доступ и разрешения/CORS источника.'};
+   if(/\.m3u8(?:\?|$)/i.test(u.href)){
+     if(v.canPlayType('application/vnd.apple.mpegurl')) v.src=u.href;
      else{
-       const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
-       script.onload=()=>{if(window.Hls&&Hls.isSupported()){const hp=new Hls();hp.loadSource(src);hp.attachMedia(v);hp.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)status.textContent='Источник найден, но браузер не смог загрузить поток.'})}else{v.src=src}};
-       script.onerror=()=>status.textContent='Не удалось загрузить компонент HLS для встроенного плеера.';
+       const script=document.createElement('script'); script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
+       script.onload=()=>{if(window.Hls&&Hls.isSupported()){const hp=new Hls();hp.loadSource(u.href);hp.attachMedia(v);hp.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)status.textContent='HLS-источник найден, но браузер не смог загрузить поток. Проверь доступ и CORS у хоста.'})}else v.src=u.href};
+       script.onerror=()=>{status.textContent='Не удалось загрузить HLS-плеер.'};
        document.head.appendChild(script);
      }
-   }else v.src=src;
+   }else v.src=u.href;
    status.textContent=`Встроенный плеер · ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}`;
    v.play().catch(()=>{status.textContent+=' — нажми ▶, если браузер заблокировал автозапуск.'});
-   v.onerror=()=>{status.textContent='Поток не загрузился: источник мог изменить URL или запретить прямое воспроизведение.'};
- }catch(e){
-   status.textContent=(e?.message||'Не удалось найти поток')+' Серверный поиск выполнен через /api/anilibria. Если релиз или поток недоступен, добавь разрешённую ссылку через «Настроить источник серии».';
- }
+ }catch(e){ status.textContent='Источник не удалось открыть: '+e.message; }
 }
 
 
 function sourceKey(){return `${selectedTitle}::${selectedEpisode}::${selectedVoice}`}
 function readSourceMap(){try{return JSON.parse(localStorage.getItem('aniworld_sources_v1')||'{}')}catch{return {}}}
 function getSavedSource(){return readSourceMap()[sourceKey()]||null}
-function refreshSourceAdmin(){const saved=getSavedSource();document.getElementById('sourceUrlInput').value=saved?.url||'';document.getElementById('sourceTypeInput').value=saved?.type||'auto';document.getElementById('sourceAdminStatus').textContent=saved?'Для этой серии и озвучки уже сохранён источник.':'Источник для выбранной серии ещё не задан.'}
+function refreshSourceAdmin(){const saved=getSavedSource();document.getElementById('sourceUrlInput').value=saved?.url||'';document.getElementById('sourceTypeInput').value=saved?.type||'auto';document.getElementById('sourceAdminStatus').textContent=saved?'Источник для этой серии и озвучки сохранён только в этом браузере.':'Локальный источник для выбранной серии и озвучки ещё не задан.'}
 document.getElementById('toggleSourceAdmin').addEventListener('click',()=>{const panel=document.getElementById('sourceAdmin');panel.style.display=panel.style.display==='none'?'block':'none';refreshSourceAdmin()});
-document.getElementById('saveSourceBtn').addEventListener('click',()=>{const raw=document.getElementById('sourceUrlInput').value.trim();const status=document.getElementById('sourceAdminStatus');try{const u=new URL(raw);if(!['http:','https:'].includes(u.protocol))throw new Error();const map=readSourceMap();map[sourceKey()]={url:u.href,type:document.getElementById('sourceTypeInput').value};localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));status.textContent='Сохранено для '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'. Теперь нажми «Смотреть».';document.getElementById('sourceNotice').textContent='Источник сохранён для выбранной серии и озвучки.'}catch{status.textContent='Введи корректную ссылку, начинающуюся с https:// или http://.'}});
-document.getElementById('deleteSourceBtn').addEventListener('click',()=>{const map=readSourceMap();delete map[sourceKey()];localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));refreshSourceAdmin();document.getElementById('sourceAdminStatus').textContent='Источник удалён для выбранной серии и озвучки.'});
+document.getElementById('saveSourceBtn').addEventListener('click',()=>{
+ const raw=document.getElementById('sourceUrlInput').value.trim();const status=document.getElementById('sourceAdminStatus');let u;
+ try{u=new URL(raw);if(u.protocol!=='https:')throw new Error();}
+ catch{status.textContent='Введи корректную HTTPS-ссылку на источник.';return;}
+ try{const map=readSourceMap();map[sourceKey()]={url:u.href,type:document.getElementById('sourceTypeInput').value};localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));status.textContent='Сохранено только в этом браузере для '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'. Нажми «Смотреть», чтобы открыть источник.';document.getElementById('sourceNotice').textContent='Источник сохранён только в этом браузере для выбранной серии и озвучки.';}
+ catch{status.textContent='Браузер не позволил сохранить ссылку. Проверь настройки хранения данных сайта.';}
+});
+document.getElementById('deleteSourceBtn').addEventListener('click',()=>{
+ const status=document.getElementById('sourceAdminStatus');
+ try{const map=readSourceMap();delete map[sourceKey()];localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));refreshSourceAdmin();document.getElementById('sourceAdminStatus').textContent='Источник удалён из этого браузера для выбранной серии и озвучки.';}
+ catch{status.textContent='Браузер не позволил удалить сохранённую ссылку.';}
+});
 
 function setFilter(g,btn){document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('#ongoing .card').forEach(c=>c.style.display=g==='Все'||c.dataset.genres.includes(g)?'':'none')}
 const searchBox=document.getElementById('search'), searchResults=document.getElementById('searchResults'), searchList=document.getElementById('searchList');
