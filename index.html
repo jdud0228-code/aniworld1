@@ -85,7 +85,23 @@
  .aw-time{font-size:9px}
 }
 </style>
-</head>
+<style id="aniworld-product-styles">
+[hidden]{display:none!important}
+.product-status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#17171e;color:#bdbdcb;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.product-status[data-tone="error"]{color:#ff9aaa;background:#29141b}
+.product-status[data-tone="success"]{color:#a5e6c0;background:#10241b}
+.product-account-panel{margin-top:18px;border-top:1px solid #282830;padding-top:14px}
+.product-account-panel h3{margin:0 0 12px;font-size:16px}
+.product-watchlist-row{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #282830}
+.product-watchlist-copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+.product-watchlist-copy strong{font-size:13px;overflow-wrap:anywhere}
+.product-watchlist-copy small{font-size:11px;color:#9294a4}
+.product-watchlist-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.product-status-select{background:#19191f;color:#fff;border:1px solid #343541;border-radius:8px;padding:8px;max-width:125px;font-size:11px}
+.product-remove{background:#29252c;color:#ff9aaa;border-radius:8px;padding:8px;font-size:11px}
+.product-remove:hover{background:#3a222a}
+@media(max-width:700px){.login-dialog{padding:16px!important}.product-watchlist-row{align-items:flex-start;flex-direction:column}.product-watchlist-actions{justify-content:flex-start}}
+</style></head>
 <body>
 <header class="top"><div class="logo">ANI<span>WORLD</span><i>.</i></div><nav class="nav"><a class="active" href="#home">Главная</a><a href="#anime">Аниме</a><a href="#manga">Манга</a><a href="#updates">Новинки</a></nav><div class="search-wrap"><input class="search" id="search" placeholder="⌕ Поиск аниме — название, жанр, студия..." aria-label="Поиск"><div class="search-results" id="searchResults"><div class="search-caption">♨ ПОПУЛЯРНОЕ</div><div id="searchList"></div><div class="search-foot">⌕ Введи название, жанр или студию</div></div></div><button class="login" onclick="document.getElementById('account').classList.add('show')">Войти</button></header>
 <main class="wrap" id="home">
@@ -95,8 +111,8 @@
 <section class="section" id="updates"><div class="section-head"><h2>✦ Популярные новинки</h2><button class="more" onclick="setFilter('Все')">Смотреть все →</button></div><div class="cards" id="new"></div></section>
 <section class="section" id="manga"><div class="section-head"><h2>♡ Манга и веб-манга</h2><button class="more" onclick="document.getElementById('mangaCards').scrollIntoView()">Смотреть все →</button></div><div class="cards" id="mangaCards"></div><div class="filters" style="margin-top:18px"><span class="chip">Встроенный ридер ANIWorld</span><span class="meta">Открой мангу и нажми «Читать»</span></div></section>
 <section class="section"><div class="section-head"><h2>🏆 Популярное за всё время</h2><span class="meta">Выбор сообщества ANIWorld</span></div><div class="cards" id="classic"></div></section>
-</main><footer class="footer">ANIWORLD. · Твой мир аниме и манги · Демоверсия каталога</footer>
-<div class="modal" id="details" onclick="if(event.target===this)this.classList.remove('show')"><div class="dialog"><button class="close" onclick="document.getElementById('details').classList.remove('show')">✕</button><div class="dialog-top"><div class="dialog-poster" id="dposter">✦</div><div><div class="eyebrow">ANIWORLD • КАТАЛОГ</div><h2 id="dtitle"></h2><div class="meta" id="dmeta"></div><p id="ddesc"></p><div class="actions"><button class="primary" id="watchBtn">▶ Смотреть</button><button class="secondary" id="readBtn">▤ Читать</button></div></div></div><h3>Серии / главы</h3><div class="episode-list" id="episodes"></div><h3>Озвучка</h3><div class="voice-list" id="voices"></div><div class="notice" id="sourceNotice">Выбери серию и озвучку. Для запуска вставь разрешённую ссылку на видео или плеер.</div>
+</main><footer class="footer">ANIWORLD. · Твой мир аниме и манги · Личная библиотека и история просмотра</footer>
+<div class="modal" id="details" onclick="if(event.target===this)this.classList.remove('show')"><div class="dialog"><button class="close" onclick="document.getElementById('details').classList.remove('show')">✕</button><div class="dialog-top"><div class="dialog-poster" id="dposter">✦</div><div><div class="eyebrow">ANIWORLD • КАТАЛОГ</div><h2 id="dtitle"></h2><div class="meta" id="dmeta"></div><p id="ddesc"></p><div class="actions"><button class="primary" id="watchBtn">▶ Смотреть</button><button class="secondary" id="readBtn">▤ Читать</button><button class="secondary" id="productWatchlistBtn" type="button">＋ В мой список</button></div></div></div><h3>Серии / главы</h3><div class="episode-list" id="episodes"></div><h3>Озвучка</h3><div class="voice-list" id="voices"></div><div class="notice" id="sourceNotice">Выбери серию и озвучку. Для запуска вставь разрешённую ссылку на видео или плеер.</div>
 <div style="margin-top:12px"><button class="secondary" type="button" id="toggleSourceAdmin">⚙ Настроить источник серии</button></div>
 <div id="sourceAdmin" style="display:none;margin-top:12px;padding:16px;border:1px solid #343541;border-radius:14px;background:#0b0c11">
 <h3 style="margin-top:0">Источник для выбранной серии</h3>
@@ -117,7 +133,7 @@
 </div>
 <p style="font-size:12px;color:#9294a4;margin:10px 0 0">Видео воспроизводится внутри ANIWorld, если подключённый источник разрешает прямой поток. Автозапуск со звуком может блокироваться браузером.</p>
 </div></div></div>
-<div class="modal" id="account" onclick="if(event.target===this)this.classList.remove('show')"><div class="dialog login-dialog"><button class="login-x" onclick="document.getElementById('account').classList.remove('show')">✕</button><section class="login-art"><div class="login-brand">♟ ANI<span>WORLD</span></div><h2>С возвращением<br><span style="color:#ff7890">в мир аниме</span></h2><p>Смотри аниме, собирай коллекцию и возвращайся к любимым историям.</p><div class="gift"><small>ПОДАРОК ЗА РЕГИСТРАЦИЮ</small><p><strong>14 дней Premium</strong></p><small>Демонстрационный блок оформления профиля</small></div></section><section class="login-form"><h2>Вход в аккаунт</h2><div class="muted">Введи свои данные для доступа</div><button class="auth-btn" onclick="alert('Вход через Google не подключён в демоверсии')">🌐　Войти через Google</button><button class="auth-btn" onclick="alert('Вход через Telegram не подключён в демоверсии')">➤　Войти через Telegram</button><div class="auth-divider">ИЛИ</div><label>EMAIL</label><input class="auth-input" type="email" placeholder="name@example.com"><label>ПАРОЛЬ</label><input class="auth-input" type="password" placeholder="••••••••"><button class="auth-submit" onclick="alert('Регистрация и вход пока не подключены к серверу')">Войти</button><div class="auth-bottom">Впервые здесь? <a onclick="alert('Регистрация появится после подключения серверной части')">Создать аккаунт</a></div></section></div></div></div>
+<div class="modal" id="account" onclick="if(event.target===this)this.classList.remove('show')"><div class="dialog login-dialog"><button class="login-x" onclick="document.getElementById('account').classList.remove('show')" aria-label="Закрыть">✕</button><section class="login-art"><div class="login-brand">♟ ANI<span>WORLD</span></div><h2>Твоя личная<br><span style="color:#ff7890">библиотека аниме</span></h2><p>Сохраняй избранное, отслеживай серии и продолжай просмотр на разных устройствах.</p><div class="gift"><small>ANIWORLD ACCOUNT</small><p><strong>Твоя коллекция</strong></p><small>Список, профиль и история просмотра хранятся в базе данных.</small></div></section><section class="login-form"><h2 id="productAuthTitle">Вход в ANIWorld</h2><div class="muted" id="productAccountIdentity">Войди, чтобы синхронизировать библиотеку</div><form id="productAuthForm"><label for="productEmail">EMAIL</label><input class="auth-input" id="productEmail" type="email" autocomplete="email" placeholder="name@example.com" required maxlength="254"><label for="productPassword">ПАРОЛЬ</label><input class="auth-input" id="productPassword" type="password" autocomplete="current-password" placeholder="Не менее 8 символов" required minlength="8" maxlength="128"><div id="productSignupFields" hidden><label for="productDisplayName">ИМЯ В ANIWorld</label><input class="auth-input" id="productDisplayName" type="text" autocomplete="nickname" placeholder="Как тебя называть" maxlength="64"></div><button class="auth-submit" id="productAuthSubmit" type="submit">Войти</button></form><button class="auth-btn" id="productModeToggle" type="button">Создать аккаунт</button><button class="auth-btn" id="productSignOut" type="button" hidden>Выйти из аккаунта</button><div class="product-status" id="productAuthStatus" role="status" aria-live="polite">Подключаю сервис аккаунтов…</div><div class="product-account-panel" id="productAccountPanel" hidden><h3>Моя библиотека</h3><div id="productWatchlist"></div><div class="product-status" id="productWatchlistEmpty" hidden>Пока список пуст.</div></div></section></div></div>
 <script>
 const data=[
 {title:'Свадьба светлячков',searchTitle:'Hotaru no Yomeiri',type:'Аниме',year:2026,genres:['Романтика','Драма'],score:'8.7',art:'✿',bg:'linear-gradient(145deg,#54243c,#17284b)',desc:'Сатоко предлагает таинственному убийце Шинпэю фиктивный брак, чтобы спастись. Историческая романтическая история.',eps:12,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']},
@@ -151,6 +167,7 @@ function showPopularSources(status){
 let selectedTitle=null, selectedEpisode=1, selectedVoice='AniLibria', selectedType='Аниме', selectedRemoteCode=null, selectedSearchTitle=null;
 function openDetail(i){
   let x=data[i]; selectedTitle=x.title; selectedEpisode=1; selectedVoice=(x.voices&&x.voices[0])||'AniLibria'; selectedType=x.type; selectedRemoteCode=x.remoteCode||x.code||x.alias||null; selectedSearchTitle=x.searchTitle||x.title;
+  if(window.ANIProduct)window.ANIProduct.setCurrentTitle({title:x.title,provider:'aniliberty',providerCode:x.searchTitle||x.remoteCode||x.code||x.alias||x.title,kind:x.type==='Манга'?'manga':'anime',synopsis:x.desc||'',posterUrl:x.cover||'',year:Number(x.year)||null,score:Number(x.score)||null,genres:Array.isArray(x.genres)?x.genres:[]});
   document.getElementById('dtitle').textContent=x.title;
   document.getElementById('dmeta').textContent=`★ ${x.score} · ${x.year} · ${x.type} · ${x.genres.join(' / ')}`;
   document.getElementById('ddesc').textContent=x.desc;
@@ -302,6 +319,7 @@ function buildAniVideoPlayer(options){
    }
    if(currentTime<=10||(!force&&now-lastPositionSaveAt<5000))return;
    localStorage.setItem(positionKey,JSON.stringify({time:currentTime,updatedAt:now}));
+   if(window.ANIProduct)window.ANIProduct.saveProgress({title:String(title),providerCode:String(selectedSearchTitle||selectedRemoteCode||title),episode:Number(episode)||1,voice:String(selectedVoice||''),positionSeconds:currentTime,durationSeconds:Number.isFinite(duration)?duration:0,isFinished:false});
    lastPositionSaveAt=now;
   }catch{}
  }
@@ -427,7 +445,7 @@ function buildAniVideoPlayer(options){
  video.addEventListener('loadedmetadata',()=>{updateTime();restorePendingSeek()});
  video.addEventListener('durationchange',()=>{updateTime();restorePendingSeek()});video.addEventListener('timeupdate',()=>{updateTime();savePlayerPosition(false)});video.addEventListener('progress',updateTime);video.addEventListener('volumechange',updateVolume);
  video.addEventListener('play',()=>{updatePlayButton();hideLoading();setPlayerStatus(resumeNotice?'ANIWorld · '+resumeNotice:'ANIWorld · воспроизведение')});
- video.addEventListener('pause',()=>{updatePlayButton();savePlayerPosition(true)});video.addEventListener('ended',()=>{updatePlayButton();try{localStorage.removeItem(positionKey)}catch{}});
+ video.addEventListener('pause',()=>{updatePlayButton();savePlayerPosition(true)});video.addEventListener('ended',()=>{updatePlayButton();try{localStorage.removeItem(positionKey)}catch{};if(window.ANIProduct)window.ANIProduct.saveProgress({title:String(title),providerCode:String(selectedSearchTitle||selectedRemoteCode||title),episode:Number(episode)||1,voice:String(selectedVoice||''),positionSeconds:Number(video.currentTime)||0,durationSeconds:Number(video.duration)||0,isFinished:true})});
  video.addEventListener('playing',()=>{hideLoading();isSwitching=false;setPlayerStatus('ANIWorld · воспроизведение')});
  video.addEventListener('canplay',()=>{hideLoading();isSwitching=false});
  video.addEventListener('waiting',()=>{if(!video.paused)showLoading(isSwitching?'Переключаю качество…':'Буферизую видео…')});
@@ -549,6 +567,7 @@ async function openPlayer(){
    remoteCode=first?.code||first?.alias||first?.id;
   }
   if(!remoteCode)throw new Error('Не удалось найти тайтл в онлайн-каталоге.');
+  selectedRemoteCode=remoteCode;
   const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(remoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
   if(requestId!==activePlayerGeneration)return;
   if(!response.ok)throw new Error('Каталог временно недоступен ('+response.status+').');
