@@ -60,9 +60,9 @@ const data=[
 ];
 function card(x,i){return `<article class="card" data-title="${x.title.toLowerCase()}" data-genres="${x.genres.join(' ')}" onclick="openDetail(${i})"><div class="poster" style="--poster:${x.bg}"><span class="art">${x.cover?`<img src="${x.cover}" alt="${x.title} poster" loading="lazy">`:x.art}</span><span class="score">★ ${x.score}</span><span class="kind">${x.type.toUpperCase()}</span><strong>${x.title}</strong></div><h3>${x.title}</h3><div class="meta"><b>${x.year}</b> · ${x.type} · ${x.genres[0]}</div></article>`}
 function render(){document.getElementById('ongoing').innerHTML=data.filter(x=>x.type==='Аниме'&&x.year>=2025).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('new').innerHTML=data.slice(5,9).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('mangaCards').innerHTML=data.filter(x=>x.type==='Манга').map(x=>card(x,data.indexOf(x))).join('');document.getElementById('classic').innerHTML=data.slice(8,12).map(x=>card(x,data.indexOf(x))).join('')}
-let selectedTitle=null, selectedEpisode=1, selectedVoice='AniLibria', selectedType='Аниме';
+let selectedTitle=null, selectedEpisode=1, selectedVoice='AniLibria', selectedType='Аниме', selectedRemoteCode=null;
 function openDetail(i){
-  let x=data[i]; selectedTitle=x.title; selectedEpisode=1; selectedVoice=(x.voices&&x.voices[0])||'AniLibria'; selectedType=x.type;
+  let x=data[i]; selectedTitle=x.title; selectedEpisode=1; selectedVoice=(x.voices&&x.voices[0])||'AniLibria'; selectedType=x.type; selectedRemoteCode=x.remoteCode||x.code||x.alias||null;
   document.getElementById('dtitle').textContent=x.title;
   document.getElementById('dmeta').textContent=`★ ${x.score} · ${x.year} · ${x.type} · ${x.genres.join(' / ')}`;
   document.getElementById('ddesc').textContent=x.desc;
@@ -99,7 +99,43 @@ async function openPlayer(){
  await loadSharedSources();
  const saved=getSavedSource();
  if(!saved||!saved.url){
-   status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Каталог AniLiberty используется только для метаданных; его media-поля не подставляются в плеер автоматически. Ответ 403 не обходим. Добавь разрешённый HTTPS-источник через «Настроить источник серии».`;
+   if(selectedRemoteCode){
+     try{
+       status.textContent='Получаю доступные данные серии из онлайн-каталога…';
+       const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(selectedRemoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
+       if(!response.ok) throw new Error('Каталог временно недоступен ('+response.status+').');
+       const release=await response.json();
+       const list=release?.player?.list||release?.player?.episodes||release?.episodes||[];
+       const episode=list.find((item,index)=>Number(item.episode??item.ordinal??item.number??index+1)===Number(selectedEpisode))||list[selectedEpisode-1];
+       const hls=episode?.hls||{};
+       const mediaUrl=episode?.url||episode?.src||hls.fhd||hls.hd||hls.sd||episode?.hls_1080||episode?.hls_720||episode?.hls_480;
+       if(mediaUrl&&typeof mediaUrl==='string'&&/^https:\/\//i.test(mediaUrl)){
+         const source={url:mediaUrl,type:'video'};
+         const mediaHost=new URL(mediaUrl).hostname;
+         if(mediaHost===location.hostname||mediaHost.endsWith('.aniliberty.top')||mediaHost.endsWith('.anilibria.top')){
+           status.textContent='Каталог вернул ссылку на медиа, но она может требовать разрешения самого источника. Проверяю воспроизведение…';
+           const video=document.createElement('video');video.controls=true;video.playsInline=true;video.autoplay=true;video.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px';frame.appendChild(video);
+           video.onerror=()=>{status.textContent='Источник не разрешил воспроизведение в браузере. Нужна разрешённая ссылка или встроенный плеер.'};
+           if(/\.m3u8(?:\?|$)/i.test(source.url)){
+             if(video.canPlayType('application/vnd.apple.mpegurl')) video.src=source.url;
+             else {
+               const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
+               script.onload=()=>{if(window.Hls&&Hls.isSupported()){const h=new Hls();h.loadSource(source.url);h.attachMedia(video);h.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)status.textContent='Источник недоступен для воспроизведения (возможно, требуется авторизация/CORS).'});}else video.src=source.url;};
+               script.onerror=()=>{status.textContent='Не удалось загрузить HLS-плеер.'};document.head.appendChild(script);
+             }
+           }else video.src=source.url;
+           video.play().catch(()=>{});
+           return;
+         }
+       }
+       status.textContent='Каталог не предоставил доступный поток для этой серии. Добавь свой разрешённый HTTPS-источник через «Настроить источник серии».';
+       return;
+     }catch(error){
+       status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Можно добавить собственный разрешённый HTTPS-источник через «Настроить источник серии».';
+       return;
+     }
+   }
+   status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Добавь разрешённый HTTPS-источник через «Настроить источник серии».`;
    return;
  }
  try{
@@ -270,8 +306,8 @@ const searchBox=document.getElementById('search'), searchResults=document.getEle
 let searchRequest=0;
 function safeText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function paintLocalSearch(q=''){let matches=data.filter(x=>!q||(`${x.title} ${x.genres.join(' ')}`).toLowerCase().includes(q.toLowerCase())).slice(0,6);return matches.map(x=>`<div class="search-result" data-local-index="${data.indexOf(x)}"><div class="search-thumb" style="background:${x.bg}">${x.cover?`<img src="${x.cover}" alt="">`:x.art}</div><div class="search-info"><strong>${x.title}</strong><small>${x.title} · ${x.year}</small><div class="tags"><span>★ ${x.score}</span><span>${x.year}</span>${x.genres.slice(0,3).map(g=>`<span>${g}</span>`).join('')}</div><div class="search-status">● ${x.year>=2025?'Онгоинг':'Завершён'}</div></div><div class="search-date">▣ ${x.eps} эп.</div></div>`).join('')}
-function paintSearch(q=''){const query=q.trim();const local=paintLocalSearch(query);searchList.innerHTML=local||'<div class="search-foot">Ищу в каталоге…</div>';if(!query){if(!local)searchList.innerHTML='<div class="search-foot">⌕ Введи название, жанр или студию</div>';return}const request=++searchRequest;fetch('/api/anilibria?action=search&query='+encodeURIComponent(query)).then(r=>{if(!r.ok)throw new Error('API '+r.status);return r.json()}).then(result=>{if(request!==searchRequest||searchBox.value.trim()!==query)return;const remote=Array.isArray(result)?result:(result?.data||result?.list||result?.items||result?.titles||[]);const norm=v=>String(v||'').toLowerCase().replace(/[^a-zа-яё0-9]/gi,'');const localTitles=new Set(data.map(x=>norm(x.title)));const extra=remote.filter(x=>{const title=x?.names?.ru||x?.name?.main||x?.name||x?.title||x?.names?.main;return title&&!localTitles.has(norm(title))}).slice(0,6);const remoteHtml=extra.map(x=>{const title=x?.names?.ru||x?.name?.main||x?.name||x?.title||x?.names?.main;const year=x.year||'';const score=x.shikimori?.rating||x.rating?.average||'—';const poster=x.poster?.optimized?.preview||x.poster?.preview||x.poster?.src||'';const cover=poster?(poster.startsWith('http')?poster:'https://aniliberty.top'+poster):'';const eps=x.episodes_total||x.episodes?.length||'?';return `<div class="search-result" data-remote-title="${safeText(title)}" data-remote-year="${safeText(year)}" data-remote-desc="${safeText(x.description||'')}" data-remote-cover="${safeText(cover)}" data-remote-score="${safeText(score)}"><div class="search-thumb" style="background:#191923">${cover?`<img src="${safeText(cover)}" alt="">`:'✦'}</div><div class="search-info"><strong>${safeText(title)}</strong><small>${safeText(x.name?.english||x.names?.en||'Аниме')} · ${safeText(year)}</small><div class="tags"><span>★ ${safeText(score)}</span><span>${safeText(year)}</span><span>AniLiberty</span></div><div class="search-status">● Найдено в онлайн-каталоге</div></div><div class="search-date">▣ ${safeText(eps)} эп.</div></div>`}).join('');if(remoteHtml)searchList.innerHTML=local+remoteHtml;if(!local&&!remoteHtml)searchList.innerHTML='<div class="search-foot">Ничего не найдено. Попробуй другое название.</div>';}).catch(()=>{if(request===searchRequest&&!local)searchList.innerHTML='<div class="search-foot">Онлайн-поиск временно недоступен. Попробуй позже.</div>'})}
-searchList.addEventListener('click',e=>{const local=e.target.closest('[data-local-index]');if(local){openDetail(Number(local.dataset.localIndex));searchResults.classList.remove('show');return}const remote=e.target.closest('[data-remote-title]');if(remote){const title=remote.dataset.remoteTitle;let idx=data.findIndex(x=>x.title.toLowerCase()===title.toLowerCase());if(idx<0){data.push({title,year:Number(remote.dataset.remoteYear)||2026,score:remote.dataset.remoteScore||'—',type:'Аниме',genres:['Аниме'],desc:remote.dataset.remoteDesc||'Найдено во внешнем каталоге. Доступность серий и видеопотока нужно проверить отдельно.',eps:12,art:'✦',bg:'linear-gradient(145deg,#30202d,#12141b)',cover:remote.dataset.remoteCover||'',searchTitle:title,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']});idx=data.length-1}openDetail(idx);searchResults.classList.remove('show')}});
+function paintSearch(q=''){const query=q.trim();const local=paintLocalSearch(query);searchList.innerHTML=local||'<div class="search-foot">Ищу в каталоге…</div>';if(!query){if(!local)searchList.innerHTML='<div class="search-foot">⌕ Введи название, жанр или студию</div>';return}const request=++searchRequest;fetch('/api/anilibria?action=search&query='+encodeURIComponent(query)).then(r=>{if(!r.ok)throw new Error('API '+r.status);return r.json()}).then(result=>{if(request!==searchRequest||searchBox.value.trim()!==query)return;const remote=Array.isArray(result)?result:(result?.data||result?.list||result?.items||result?.titles||[]);const norm=v=>String(v||'').toLowerCase().replace(/[^a-zа-яё0-9]/gi,'');const localTitles=new Set(data.map(x=>norm(x.title)));const extra=remote.filter(x=>{const title=x?.names?.ru||x?.name?.main||x?.name||x?.title||x?.names?.main;return title&&!localTitles.has(norm(title))}).slice(0,6);const remoteHtml=extra.map(x=>{const title=x?.names?.ru||x?.name?.main||x?.name||x?.title||x?.names?.main;const remoteCode=x.code||x.alias||x.id||'';const year=x.year||'';const score=x.shikimori?.rating||x.rating?.average||'—';const poster=x.poster?.optimized?.preview||x.poster?.preview||x.poster?.src||'';const cover=poster?(poster.startsWith('http')?poster:'https://aniliberty.top'+poster):'';const eps=x.episodes_total||x.episodes?.length||'?';return `<div class="search-result" data-remote-title="${safeText(title)}" data-remote-code="${safeText(remoteCode)}" data-remote-year="${safeText(year)}" data-remote-desc="${safeText(x.description||'')}" data-remote-cover="${safeText(cover)}" data-remote-score="${safeText(score)}"><div class="search-thumb" style="background:#191923">${cover?`<img src="${safeText(cover)}" alt="">`:'✦'}</div><div class="search-info"><strong>${safeText(title)}</strong><small>${safeText(x.name?.english||x.names?.en||'Аниме')} · ${safeText(year)}</small><div class="tags"><span>★ ${safeText(score)}</span><span>${safeText(year)}</span><span>AniLiberty</span></div><div class="search-status">● Найдено в онлайн-каталоге</div></div><div class="search-date">▣ ${safeText(eps)} эп.</div></div>`}).join('');if(remoteHtml)searchList.innerHTML=local+remoteHtml;if(!local&&!remoteHtml)searchList.innerHTML='<div class="search-foot">Ничего не найдено. Попробуй другое название.</div>';}).catch(()=>{if(request===searchRequest&&!local)searchList.innerHTML='<div class="search-foot">Онлайн-поиск временно недоступен. Попробуй позже.</div>'})}
+searchList.addEventListener('click',e=>{const local=e.target.closest('[data-local-index]');if(local){openDetail(Number(local.dataset.localIndex));searchResults.classList.remove('show');return}const remote=e.target.closest('[data-remote-title]');if(remote){const title=remote.dataset.remoteTitle;let idx=data.findIndex(x=>x.title.toLowerCase()===title.toLowerCase());if(idx<0){data.push({title,remoteCode:remote.dataset.remoteCode||'',year:Number(remote.dataset.remoteYear)||2026,score:remote.dataset.remoteScore||'—',type:'Аниме',genres:['Аниме'],desc:remote.dataset.remoteDesc||'Найдено во внешнем каталоге. Доступность серий и видеопотока нужно проверить отдельно.',eps:12,art:'✦',bg:'linear-gradient(145deg,#30202d,#12141b)',cover:remote.dataset.remoteCover||'',searchTitle:title,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']});idx=data.length-1}openDetail(idx);searchResults.classList.remove('show')}});
 searchBox.addEventListener('focus',()=>{paintSearch(searchBox.value);searchResults.classList.add('show')});searchBox.addEventListener('input',e=>{paintSearch(e.target.value);searchResults.classList.add('show')});document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))searchResults.classList.remove('show')});paintSearch();
 render();
 loadSharedSources();
