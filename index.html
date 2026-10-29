@@ -24,7 +24,7 @@
 <div style="margin-top:12px"><button class="secondary" type="button" id="toggleSourceAdmin">⚙ Настроить источник серии</button></div>
 <div id="sourceAdmin" style="display:none;margin-top:12px;padding:16px;border:1px solid #343541;border-radius:14px;background:#0b0c11">
 <h3 style="margin-top:0">Источник для выбранной серии</h3>
-<p style="font-size:13px;color:#aaaebd">Добавь прямую ссылку на MP4/HLS или iframe-плеер, который у тебя есть право использовать. Для прямого видео нужны разрешения источника на воспроизведение; для HLS — CORS, для iframe — разрешённое встраивание.</p><div class="notice" id="sourceStoreNotice" style="margin:12px 0">Общее хранилище не подключено. Ссылки сохраняются только в этом браузере и не видны другим посетителям. Для общей библиотеки нужен защищённый серверный источник; требования описаны в README_RU.txt.</div>
+<p style="font-size:13px;color:#aaaebd">Добавь прямую ссылку на MP4/HLS или iframe-плеер, который у тебя есть право использовать. Для прямого видео нужны разрешения источника на воспроизведение; для HLS — CORS, для iframe — разрешённое встраивание.</p><div class="notice" id="sourceStoreNotice" style="margin:12px 0">Общее хранилище не подключено. Источники сохраняются только в этом браузере.</div><div id="sourceAdminTokenWrap" style="display:none;margin:12px 0"><label style="display:block;margin:10px 0 5px">Токен редактора для общей библиотеки</label><input id="sourceAdminTokenInput" type="password" autocomplete="new-password" placeholder="Введи ANIWORLD_SOURCE_ADMIN_TOKEN" style="width:100%;box-sizing:border-box;padding:12px;border-radius:9px;border:1px solid #343541;background:#15161d;color:#fff"><small style="display:block;color:#9294a4;margin-top:6px">Нужен только для общей записи. Браузер не сохраняет токен.</small></div>
 <label style="display:block;margin:10px 0 5px">Ссылка на видео или встраиваемый плеер</label>
 <input id="sourceUrlInput" type="url" placeholder="https://…" style="width:100%;box-sizing:border-box;padding:12px;border-radius:9px;border:1px solid #343541;background:#15161d;color:#fff">
 <label style="display:block;margin:10px 0 5px">Тип источника</label>
@@ -90,12 +90,13 @@ function selectVoice(v,btn){
  document.getElementById('playerFrame').innerHTML='';
  if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
 }
-function openPlayer(){
+async function openPlayer(){
  if(selectedType==='Манга') return;
  const box=document.getElementById('playerSetup'), status=document.getElementById('playerStatus'), frame=document.getElementById('playerFrame');
  box.style.display='block'; frame.innerHTML='';
  status.textContent=`Проверяю источник: ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}…`;
  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+ await loadSharedSources();
  const saved=getSavedSource();
  if(!saved||!saved.url){
    status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Каталог AniLiberty используется только для метаданных; его media-поля не подставляются в плеер автоматически. Ответ 403 не обходим. Добавь разрешённый HTTPS-источник через «Настроить источник серии».`;
@@ -128,24 +129,142 @@ function openPlayer(){
 }
 
 
-function sourceKey(){return `${selectedTitle}::${selectedEpisode}::${selectedVoice}`}
-function readSourceMap(){try{return JSON.parse(localStorage.getItem('aniworld_sources_v1')||'{}')}catch{return {}}}
-function getSavedSource(){return readSourceMap()[sourceKey()]||null}
-function refreshSourceAdmin(){const saved=getSavedSource();document.getElementById('sourceUrlInput').value=saved?.url||'';document.getElementById('sourceTypeInput').value=saved?.type||'auto';document.getElementById('sourceAdminStatus').textContent=saved?'Источник для этой серии и озвучки сохранён только в этом браузере.':'Локальный источник для выбранной серии и озвучки ещё не задан.'}
-document.getElementById('toggleSourceAdmin').addEventListener('click',()=>{const panel=document.getElementById('sourceAdmin');panel.style.display=panel.style.display==='none'?'block':'none';refreshSourceAdmin()});
-document.getElementById('saveSourceBtn').addEventListener('click',()=>{
- const raw=document.getElementById('sourceUrlInput').value.trim();const status=document.getElementById('sourceAdminStatus');let u;
- try{u=new URL(raw);if(u.protocol!=='https:')throw new Error();}
- catch{status.textContent='Введи корректную HTTPS-ссылку на источник.';return;}
- try{const map=readSourceMap();map[sourceKey()]={url:u.href,type:document.getElementById('sourceTypeInput').value};localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));status.textContent='Сохранено только в этом браузере для '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'. Нажми «Смотреть», чтобы открыть источник.';document.getElementById('sourceNotice').textContent='Источник сохранён только в этом браузере для выбранной серии и озвучки.';}
- catch{status.textContent='Браузер не позволил сохранить ссылку. Проверь настройки хранения данных сайта.';}
-});
-document.getElementById('deleteSourceBtn').addEventListener('click',()=>{
- const status=document.getElementById('sourceAdminStatus');
- try{const map=readSourceMap();delete map[sourceKey()];localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));refreshSourceAdmin();document.getElementById('sourceAdminStatus').textContent='Источник удалён из этого браузера для выбранной серии и озвучки.';}
- catch{status.textContent='Браузер не позволил удалить сохранённую ссылку.';}
-});
+let sharedSourceMap = {};
+let sharedSourcesConfigured = false;
+let sharedSourcesWritable = false;
+let sharedSourcesChecked = false;
+let sharedSourcesPromise = null;
+let sharedSourcesCheckFailed = false;
 
+function updateSourceStoreNotice(){
+ const notice=document.getElementById('sourceStoreNotice');
+ const tokenWrap=document.getElementById('sourceAdminTokenWrap');
+ const saveButton=document.getElementById('saveSourceBtn');
+ if(sharedSourcesCheckFailed){
+   notice.textContent='Общее хранилище сейчас недоступно. Источники можно сохранить только в этом браузере; попробуй позже.';
+ }else if(sharedSourcesConfigured&&sharedSourcesWritable){
+   notice.textContent='Общая библиотека подключена. Ссылки доступны на всех устройствах. Для записи введи токен редактора; сайт его не сохраняет.';
+ }else if(sharedSourcesConfigured){
+   notice.textContent='Общая библиотека подключена для просмотра. Для общей записи настрой ANIWORLD_SOURCE_ADMIN_TOKEN в Vercel; пока можно сохранить источник только в этом браузере.';
+ }else{
+   notice.textContent='Общее хранилище не подключено. Источники сохраняются только в этом браузере и не видны другим посетителям.';
+ }
+ tokenWrap.style.display=sharedSourcesWritable?'block':'none';
+ saveButton.textContent=sharedSourcesWritable?'Сохранить в общей библиотеке':'Сохранить в этом браузере';
+}
+
+async function loadSharedSources(){
+ if(sharedSourcesChecked) return sharedSourcesConfigured;
+ if(sharedSourcesPromise) return sharedSourcesPromise;
+ sharedSourcesPromise=(async()=>{
+   try{
+     const response=await fetch('/api/sources',{headers:{Accept:'application/json'},cache:'no-store'});
+     const result=await response.json();
+     if(!response.ok) throw new Error('Source API unavailable');
+     sharedSourcesConfigured=result.configured===true;
+     sharedSourcesWritable=result.writable===true;
+     sharedSourceMap=result.sources&&typeof result.sources==='object'&&!Array.isArray(result.sources)?result.sources:{};
+     sharedSourcesCheckFailed=false;
+   }catch(e){
+     sharedSourcesConfigured=false;
+     sharedSourcesWritable=false;
+     sharedSourceMap={};
+     sharedSourcesCheckFailed=true;
+   }finally{
+     sharedSourcesChecked=true;
+     sharedSourcesPromise=null;
+     updateSourceStoreNotice();
+     if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
+   }
+   return sharedSourcesConfigured;
+ })();
+ return sharedSourcesPromise;
+}
+
+function sourceKey(){return selectedTitle+'::'+selectedEpisode+'::'+selectedVoice}
+function readSourceMap(){try{return JSON.parse(localStorage.getItem('aniworld_sources_v1')||'{}')}catch{return {}}}
+function getSavedSource(){const key=sourceKey();return sharedSourceMap[key]||readSourceMap()[key]||null}
+function refreshSourceAdmin(){
+ const key=sourceKey(), saved=getSavedSource(), shared=sharedSourceMap[key];
+ document.getElementById('sourceUrlInput').value=saved?.url||'';
+ document.getElementById('sourceTypeInput').value=saved?.type||'auto';
+ document.getElementById('sourceAdminStatus').textContent=shared?'Общий источник этой серии и озвучки загружен с сервера.':saved?'Локальный источник сохранён только в этом браузере.':'Источник для выбранной серии и озвучки ещё не задан.';
+ updateSourceStoreNotice();
+}
+document.getElementById('toggleSourceAdmin').addEventListener('click',()=>{
+ const panel=document.getElementById('sourceAdmin');
+ panel.style.display=panel.style.display==='none'?'block':'none';
+ if(panel.style.display!=='none'){refreshSourceAdmin();loadSharedSources();}
+});
+document.getElementById('saveSourceBtn').addEventListener('click',async()=>{
+ await loadSharedSources();
+ const raw=document.getElementById('sourceUrlInput').value.trim();
+ const status=document.getElementById('sourceAdminStatus');
+ let url;
+ try{url=new URL(raw);if(url.protocol!=='https:'||url.username||url.password)throw new Error();}
+ catch{status.textContent='Введи корректную HTTPS-ссылку на источник.';return;}
+ const type=document.getElementById('sourceTypeInput').value;
+ const key=sourceKey();
+ if(sharedSourcesWritable){
+   const tokenInput=document.getElementById('sourceAdminTokenInput');
+   const token=tokenInput.value.trim();
+   if(!token){status.textContent='Введи токен редактора, настроенный в Vercel, чтобы сохранить источник для всех.';return;}
+   try{
+     const response=await fetch('/api/sources',{
+       method:'POST',
+       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+       body:JSON.stringify({key:key,url:url.href,type:type})
+     });
+     if(!response.ok){
+       status.textContent=response.status===401?'Токен редактора не подошёл. Проверь его в Vercel.':'Общий источник не сохранён. Проверь настройки хранилища Vercel.';
+       return;
+     }
+   }catch(e){status.textContent='Не удалось связаться с общим хранилищем. Источник не сохранён.';return;}
+   sharedSourceMap[key]={url:url.href,type:type};
+   try{const map=readSourceMap();delete map[key];localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));}catch(e){}
+   tokenInput.value='';
+   refreshSourceAdmin();
+   status.textContent='Источник сохранён в общей библиотеке для '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'. Нажми «Смотреть», чтобы открыть источник.';
+   document.getElementById('sourceNotice').textContent='Источник сохранён в общей библиотеке для выбранной серии и озвучки.';
+   return;
+ }
+ try{
+   const map=readSourceMap();
+   map[key]={url:url.href,type:type};
+   localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));
+   status.textContent='Сохранено только в этом браузере для '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'. Нажми «Смотреть», чтобы открыть источник.';
+   document.getElementById('sourceNotice').textContent='Источник сохранён только в этом браузере для выбранной серии и озвучки.';
+ }catch(e){status.textContent='Браузер не позволил сохранить ссылку. Проверь настройки хранения данных сайта.';}
+});
+document.getElementById('deleteSourceBtn').addEventListener('click',async()=>{
+ const status=document.getElementById('sourceAdminStatus');
+ await loadSharedSources();
+ const key=sourceKey();
+ const shared=Boolean(sharedSourceMap[key]);
+ if(shared){
+   if(!sharedSourcesWritable){status.textContent='Общий источник доступен только для чтения. Настрой ANIWORLD_SOURCE_ADMIN_TOKEN в Vercel, чтобы удалить его.';return;}
+   const tokenInput=document.getElementById('sourceAdminTokenInput');
+   const token=tokenInput.value.trim();
+   if(!token){status.textContent='Введи токен редактора, чтобы удалить источник из общей библиотеки.';return;}
+   try{
+     const response=await fetch('/api/sources',{
+       method:'DELETE',
+       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+       body:JSON.stringify({key:key})
+     });
+     if(!response.ok){
+       status.textContent=response.status===401?'Токен редактора не подошёл.':'Общий источник не удалён. Проверь настройки хранилища Vercel.';
+       return;
+     }
+   }catch(e){status.textContent='Не удалось связаться с общим хранилищем. Источник не удалён.';return;}
+   delete sharedSourceMap[key];
+   tokenInput.value='';
+ }
+ try{const map=readSourceMap();delete map[key];localStorage.setItem('aniworld_sources_v1',JSON.stringify(map));}
+ catch(e){status.textContent='Не удалось удалить локальный источник из этого браузера.';return;}
+ refreshSourceAdmin();
+ status.textContent=shared?'Источник удалён из общей библиотеки и этого браузера.':'Источник удалён из этого браузера.';
+});
 function setFilter(g,btn){document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('#ongoing .card').forEach(c=>c.style.display=g==='Все'||c.dataset.genres.includes(g)?'':'none')}
 const searchBox=document.getElementById('search'), searchResults=document.getElementById('searchResults'), searchList=document.getElementById('searchList');
 let searchRequest=0;
@@ -155,6 +274,7 @@ function paintSearch(q=''){const query=q.trim();const local=paintLocalSearch(que
 searchList.addEventListener('click',e=>{const local=e.target.closest('[data-local-index]');if(local){openDetail(Number(local.dataset.localIndex));searchResults.classList.remove('show');return}const remote=e.target.closest('[data-remote-title]');if(remote){const title=remote.dataset.remoteTitle;let idx=data.findIndex(x=>x.title.toLowerCase()===title.toLowerCase());if(idx<0){data.push({title,year:Number(remote.dataset.remoteYear)||2026,score:remote.dataset.remoteScore||'—',type:'Аниме',genres:['Аниме'],desc:remote.dataset.remoteDesc||'Найдено во внешнем каталоге. Доступность серий и видеопотока нужно проверить отдельно.',eps:12,art:'✦',bg:'linear-gradient(145deg,#30202d,#12141b)',cover:remote.dataset.remoteCover||'',searchTitle:title,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']});idx=data.length-1}openDetail(idx);searchResults.classList.remove('show')}});
 searchBox.addEventListener('focus',()=>{paintSearch(searchBox.value);searchResults.classList.add('show')});searchBox.addEventListener('input',e=>{paintSearch(e.target.value);searchResults.classList.add('show')});document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))searchResults.classList.remove('show')});paintSearch();
 render();
+loadSharedSources();
 document.getElementById('watchBtn').addEventListener('click',openPlayer);
 document.getElementById('retrySourceBtn').addEventListener('click',openPlayer);
 document.getElementById('closeEmbeddedPlayerBtn').addEventListener('click',()=>{document.getElementById('playerSetup').style.display='none';document.getElementById('playerFrame').innerHTML='';});
