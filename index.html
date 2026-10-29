@@ -357,6 +357,7 @@ document.getElementById('readBtn').addEventListener('click',()=>{
 async function loadRealCovers(){
   const query=`query ($search:String){ Media(search:$search,type:ANIME){ coverImage{extraLarge large} } }`;
   for(const item of data){
+    if(item.type==='Манга') continue;
     try{
       const r=await fetch('https://graphql.anilist.co',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({query,variables:{search:item.searchTitle}})});
       if(!r.ok) continue;
@@ -364,6 +365,7 @@ async function loadRealCovers(){
       if(media?.coverImage?.extraLarge){item.cover=media.coverImage.extraLarge;}
     }catch(e){}
   }
+  await loadPopularManga();
   render();
   if(searchBox) paintSearch(searchBox.value);
   const first=data.find(x=>x.title==='Свадьба светлячков');
@@ -372,6 +374,24 @@ async function loadRealCovers(){
     if(hero) hero.style.backgroundImage=`linear-gradient(90deg,#08090cf7 0%,#08090cd9 36%,#08090c22 78%),url("${first.cover}")`;
     if(hero) hero.style.backgroundSize='cover'; if(hero) hero.style.backgroundPosition='center 28%';
   }
+}
+async function loadPopularManga(){
+ const query=`query { Page(page:1,perPage:18){ media(type:MANGA,sort:POPULARITY_DESC){ id title{romaji english native} coverImage{extraLarge large} averageScore startDate{year} genres description(asHtml:false) chapters format } } }`;
+ try{
+  const response=await fetch('https://graphql.anilist.co',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({query})});
+  if(!response.ok) return;
+  const result=await response.json();
+  const items=result?.data?.Page?.media||[];
+  const normalize=v=>String(v||'').toLowerCase().replace(/[^a-zа-яё0-9]/gi,'');
+  const known=new Set(data.filter(x=>x.type==='Манга').map(x=>normalize(x.title)));
+  for(const m of items){
+   const title=m.title?.english||m.title?.romaji||m.title?.native;
+   if(!title||known.has(normalize(title))) continue;
+   const description=String(m.description||'Описание пока не предоставлено.').replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&#039;/g,"'").replace(/&quot;/g,'"').replace(/\\s+/g,' ').trim();
+   data.push({title,searchTitle:m.title?.english||m.title?.romaji||title,type:'Манга',year:m.startDate?.year||'—',genres:Array.isArray(m.genres)?m.genres.slice(0,3):[],score:m.averageScore?(m.averageScore/10).toFixed(1):'—',art:'▤',bg:'linear-gradient(145deg,#33415f,#161722)',desc:description,eps:m.chapters||100,cover:m.coverImage?.extraLarge||m.coverImage?.large||'',voices:[]});
+   known.add(normalize(title));
+  }
+ }catch(error){console.warn('Не удалось загрузить популярную мангу:',error)}
 }
 loadRealCovers();
 </script></body></html>
