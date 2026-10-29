@@ -1,0 +1,49 @@
+name: ANIWorld smoke tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  inline-javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate inline JavaScript and player resume hooks
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const assert = require('node:assert/strict');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)]
+            .map(match => match[1])
+            .filter(source => source.trim());
+          assert.ok(scripts.length > 0, 'index.html should contain inline JavaScript');
+          scripts.forEach((source, index) => {
+            new vm.Script(source, { filename: `index.html:inline-script-${index + 1}` });
+          });
+          const checks = [
+            ['per-title/episode/voice progress key', /aniworld_watch_position_v1:/],
+            ['resume position restored when metadata is ready', /loadedmetadata',\s*\(\)=>\{updateTime\(\);restorePendingSeek\(\)\}/],
+            ['periodic progress saving', /timeupdate',\s*\(\)=>\{updateTime\(\);savePlayerPosition\(false\)\}/],
+            ['save on pause', /pause',\s*\(\)=>\{updatePlayButton\(\);savePlayerPosition\(true\)\}/],
+            ['save on page hide', /addEventListener\('pagehide',savePositionOnHide\)/],
+            ['clear progress at end', /ended',\s*\(\)=>\{updatePlayButton\(\);try\{localStorage\.removeItem\(positionKey\)\}/],
+            ['bounded resume seek', /const safeTarget=Math\.max\(0,Math\.min\(target,Math\.max\(0,video\.duration-2\)\)\)/],
+            ['in-page HLS error guidance', /обходить их ANIWorld не будет/]
+          ];
+          for (const [label, pattern] of checks) {
+            assert.match(html, pattern, `Missing required player behavior: ${label}`);
+            console.log('PASS', label);
+          }
+          console.log(`PASS JavaScript syntax: ${scripts.length} inline script(s)`);
+          NODE
