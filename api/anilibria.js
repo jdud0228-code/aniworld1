@@ -1,5 +1,5 @@
 // Vercel Serverless Function: proxy for the public AniLiberty API v1.
-const API = 'https://anilibria.top/api/v1';
+const API = 'https://aniliberty.top/api/v1';
 
 function normalizeRelease(release) {
   if (!release || typeof release !== 'object' || Array.isArray(release)) return release;
