@@ -350,7 +350,7 @@ async function openMangaReader(){
  statusLine.textContent='Встроенный ридер ANIWorld · поиск русских глав';
  try{
    const api='https://api.mangadex.org';
-   const response=await fetch(api+'/manga?title='+encodeURIComponent(selectedTitle)+'&limit=10&order[relevance]=desc&includes[]=cover_art',{headers:{Accept:'application/json'}});
+   const response=await fetch(api+'/manga?title%5B%5D='+encodeURIComponent(selectedTitle)+'&limit=10&order[relevance]=desc&includes[]=cover_art',{headers:{Accept:'application/json'}});
    if(!response.ok)throw new Error('Каталог манги ответил кодом '+response.status);
    const result=await response.json();
    const mangas=result.data||[];
