@@ -264,7 +264,29 @@ function buildAniVideoPlayer(options){
  if(!document.pictureInPictureEnabled||typeof video.requestPictureInPicture!=='function')pip.hidden=true;
  const fullscreen=playerButton('На весь экран','fullscreen');
  right.append(pip,fullscreen);
- let hls=null,networkRetryCount=0,mediaRecoveryAttempted=false,pendingSeek=null,isSwitching=false,nativeQualityUrl=sourceUrl;
+ const positionKey='aniworld_watch_position_v1:'+JSON.stringify([String(title),Number(episode)||1,String(selectedVoice||'')]);
+ let savedPosition=null;
+ try{const saved=JSON.parse(localStorage.getItem(positionKey)||'null');if(Number.isFinite(Number(saved?.time)))savedPosition=Number(saved.time)}catch{}
+ let resumePending=savedPosition!==null&&savedPosition>10,resumeNotice='',lastPositionSaveAt=0;
+ let hls=null,networkRetryCount=0,mediaRecoveryAttempted=false,pendingSeek=resumePending?savedPosition:null,isSwitching=false,nativeQualityUrl=sourceUrl;
+ function restorePendingSeek(){
+  if(pendingSeek===null||!Number.isFinite(video.duration)||video.duration<=0)return;
+  const target=pendingSeek;pendingSeek=null;
+  if(target>10&&target<video.duration-15){
+   try{video.currentTime=target;if(resumePending){resumePending=false;resumeNotice='Продолжение с '+formatPlayerTime(target);setPlayerStatus('ANIWorld · '+resumeNotice)}}catch{resumePending=false}
+  }else{
+   resumePending=false;
+   if(target>=video.duration-15){try{localStorage.removeItem(positionKey)}catch{}}
+  }
+ }
+ function savePlayerPosition(force){
+  if(!force&&generation!==activePlayerGeneration)return;
+  const now=Date.now(),position=Number(video.currentTime)||0,total=video.duration;
+  if(Number.isFinite(total)&&total>0&&position>=total-15){try{localStorage.removeItem(positionKey)}catch{};return}
+  if(!Number.isFinite(total)||total<=0||position<=10)return;
+  if(!force&&now-lastPositionSaveAt<5000)return;
+  try{localStorage.setItem(positionKey,JSON.stringify({time:position}));lastPositionSaveAt=now}catch{}
+ }
  function showLoading(message){if(generation!==activePlayerGeneration)return;errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
  function hideLoading(){if(generation===activePlayerGeneration)loading.hidden=true}
  function showError(message){if(generation!==activePlayerGeneration)return;loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
@@ -309,7 +331,7 @@ function buildAniVideoPlayer(options){
   pendingSeek=Number(video.currentTime)||0;nativeQualityUrl=rendition.url;isSwitching=true;
   showLoading('Переключаю качество · '+rendition.label+'…');
   if(hls){hls.loadSource(rendition.url);return}
-  video.addEventListener('loadedmetadata',function restorePosition(){if(pendingSeek!==null){try{video.currentTime=pendingSeek}catch{}pendingSeek=null}isSwitching=false},{once:true});
+  video.addEventListener('loadedmetadata',function restorePosition(){restorePendingSeek();isSwitching=false},{once:true});
   video.src=rendition.url;video.load();
   video.play().catch(()=>{hideLoading();setPlayerStatus('Качество переключено · нажми ▶ для воспроизведения.')});
  }
@@ -372,14 +394,15 @@ function buildAniVideoPlayer(options){
   else if(key==='>'||key==='.'){video.playbackRate=Math.min(2,video.playbackRate+.25);speed.value=String(video.playbackRate)}
   else if(key==='<'||key===','){video.playbackRate=Math.max(.5,video.playbackRate-.25);speed.value=String(video.playbackRate)}
  });
- video.addEventListener('loadedmetadata',()=>{updateTime();if(pendingSeek!==null){try{video.currentTime=pendingSeek}catch{}pendingSeek=null}});
- video.addEventListener('durationchange',updateTime);video.addEventListener('timeupdate',updateTime);video.addEventListener('progress',updateTime);video.addEventListener('volumechange',updateVolume);
- video.addEventListener('play',()=>{updatePlayButton();hideLoading();setPlayerStatus('ANIWorld · воспроизведение')});
- video.addEventListener('pause',updatePlayButton);video.addEventListener('ended',updatePlayButton);
+ video.addEventListener('loadedmetadata',()=>{updateTime();restorePendingSeek()});
+ video.addEventListener('durationchange',()=>{updateTime();restorePendingSeek()});video.addEventListener('timeupdate',()=>{updateTime();savePlayerPosition(false)});video.addEventListener('progress',updateTime);video.addEventListener('volumechange',updateVolume);
+ video.addEventListener('play',()=>{updatePlayButton();hideLoading();setPlayerStatus(resumeNotice?'ANIWorld · '+resumeNotice:'ANIWorld · воспроизведение')});
+ video.addEventListener('pause',()=>{updatePlayButton();savePlayerPosition(true)});video.addEventListener('ended',()=>{updatePlayButton();try{localStorage.removeItem(positionKey)}catch{}});
  video.addEventListener('playing',()=>{hideLoading();isSwitching=false;setPlayerStatus('ANIWorld · воспроизведение')});
  video.addEventListener('canplay',()=>{hideLoading();isSwitching=false});
  video.addEventListener('waiting',()=>{if(!video.paused)showLoading(isSwitching?'Переключаю качество…':'Буферизую видео…')});
  video.addEventListener('stalled',()=>{if(!video.paused)showLoading('Связь с источником задерживается…')});
+ const savePositionOnHide=()=>savePlayerPosition(true);window.addEventListener('pagehide',savePositionOnHide);
  video.addEventListener('error',()=>{
   if(!video.error)return;
   const messages={1:'Воспроизведение остановлено.',2:'Связь с источником прервалась. Проверь доступность потока.',3:'Браузер не смог декодировать этот видеоформат.',4:'Источник не поддерживает этот формат или недоступен в браузере.'};
@@ -401,7 +424,7 @@ function buildAniVideoPlayer(options){
     hls=new HlsClass({enableWorker:true,lowLatencyMode:false,backBufferLength:30});
     hls.on(HlsClass.Events.MANIFEST_PARSED,()=>{
      populateQuality();
-     if(pendingSeek!==null){try{video.currentTime=pendingSeek}catch{}pendingSeek=null}
+     restorePendingSeek();
      isSwitching=false;showLoading('Поток подключён · нажми ▶, если автозапуск заблокирован.');
      video.play().catch(()=>{hideLoading();setPlayerStatus('Поток подключён · нажми ▶ для воспроизведения.')});
     });
@@ -420,6 +443,8 @@ function buildAniVideoPlayer(options){
   }
  }
  activePlayerCleanup=()=>{
+  savePlayerPosition(true);
+  window.removeEventListener('pagehide',savePositionOnHide);
   if(hls){hls.destroy();hls=null}
   video.pause();video.removeAttribute('src');
   try{video.load()}catch{}
