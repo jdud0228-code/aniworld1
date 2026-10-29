@@ -60,9 +60,9 @@ const data=[
 ];
 function card(x,i){return `<article class="card" data-title="${x.title.toLowerCase()}" data-genres="${x.genres.join(' ')}" onclick="openDetail(${i})"><div class="poster" style="--poster:${x.bg}"><span class="art">${x.cover?`<img src="${x.cover}" alt="${x.title} poster" loading="lazy">`:x.art}</span><span class="score">★ ${x.score}</span><span class="kind">${x.type.toUpperCase()}</span><strong>${x.title}</strong></div><h3>${x.title}</h3><div class="meta"><b>${x.year}</b> · ${x.type} · ${x.genres[0]}</div></article>`}
 function render(){document.getElementById('ongoing').innerHTML=data.filter(x=>x.type==='Аниме'&&x.year>=2025).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('new').innerHTML=data.slice(5,9).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('mangaCards').innerHTML=data.filter(x=>x.type==='Манга').map(x=>card(x,data.indexOf(x))).join('');document.getElementById('classic').innerHTML=data.slice(8,12).map(x=>card(x,data.indexOf(x))).join('')}
-let selectedTitle=null, selectedEpisode=1, selectedVoice='AniLibria', selectedType='Аниме', selectedRemoteCode=null;
+let selectedTitle=null, selectedEpisode=1, selectedVoice='AniLibria', selectedType='Аниме', selectedRemoteCode=null, selectedSearchTitle=null;
 function openDetail(i){
-  let x=data[i]; selectedTitle=x.title; selectedEpisode=1; selectedVoice=(x.voices&&x.voices[0])||'AniLibria'; selectedType=x.type; selectedRemoteCode=x.remoteCode||x.code||x.alias||null;
+  let x=data[i]; selectedTitle=x.title; selectedEpisode=1; selectedVoice=(x.voices&&x.voices[0])||'AniLibria'; selectedType=x.type; selectedRemoteCode=x.remoteCode||x.code||x.alias||null; selectedSearchTitle=x.searchTitle||x.title;
   document.getElementById('dtitle').textContent=x.title;
   document.getElementById('dmeta').textContent=`★ ${x.score} · ${x.year} · ${x.type} · ${x.genres.join(' / ')}`;
   document.getElementById('ddesc').textContent=x.desc;
@@ -99,10 +99,19 @@ async function openPlayer(){
  await loadSharedSources();
  const saved=getSavedSource();
  if(!saved||!saved.url){
-   if(selectedRemoteCode){
+   if(selectedRemoteCode||selectedSearchTitle){
      try{
        status.textContent='Получаю доступные данные серии из онлайн-каталога…';
-       const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(selectedRemoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
+       let remoteCode=selectedRemoteCode;
+       if(!remoteCode){
+         const searchResponse=await fetch('/api/anilibria?action=search&query='+encodeURIComponent(selectedSearchTitle),{headers:{Accept:'application/json'},cache:'no-store'});
+         if(!searchResponse.ok) throw new Error('Онлайн-каталог временно недоступен ('+searchResponse.status+').');
+         const results=await searchResponse.json();
+         const first=Array.isArray(results)?results[0]:null;
+         remoteCode=first?.code||first?.alias||first?.id;
+       }
+       if(!remoteCode) throw new Error('Не удалось найти тайтл в онлайн-каталоге.');
+       const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(remoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
        if(!response.ok) throw new Error('Каталог временно недоступен ('+response.status+').');
        const release=await response.json();
        const list=release?.player?.list||release?.player?.episodes||release?.episodes||[];
