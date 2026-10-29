@@ -290,6 +290,20 @@ function buildAniVideoPlayer(options){
    if(target>=video.duration-15){try{localStorage.removeItem(positionKey)}catch{}}
   }
  }
+  function savePlayerPosition(force=false){
+  const currentTime=Number(video.currentTime);
+  if(!Number.isFinite(currentTime))return;
+  const duration=Number(video.duration),now=Date.now();
+  try{
+   if(video.ended||(Number.isFinite(duration)&&duration>0&&currentTime>=duration-15)){
+    localStorage.removeItem(positionKey);
+    return;
+   }
+   if(currentTime<=10||(!force&&now-lastPositionSaveAt<5000))return;
+   localStorage.setItem(positionKey,JSON.stringify({time:currentTime,updatedAt:now}));
+   lastPositionSaveAt=now;
+  }catch{}
+ }
   function showLoading(message){if(generation!==activePlayerGeneration)return;errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
  function hideLoading(){if(generation===activePlayerGeneration)loading.hidden=true}
  function showError(message){if(generation!==activePlayerGeneration)return;loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
