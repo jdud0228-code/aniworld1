@@ -87,7 +87,7 @@ function openDetail(i){
   document.getElementById('readBtn').style.display=x.type==='Манга'?'inline-block':'none';
   document.getElementById('playerSetup').style.display='none';
   document.getElementById('playerFrame').innerHTML='';
-  document.getElementById('sourceNotice').textContent=`Выбраны: ${x.type==='Манга'?'глава':'серия'} 1 · ${selectedVoice}. Чтобы воспроизвести, нажми «Смотреть» и добавь разрешённую ссылку на плеер.`;
+  document.getElementById('sourceNotice').textContent=`Выбраны: ${x.type==='Манга'?'глава':'серия'} 1 · ${selectedVoice}. ANIWorld сначала проверит доступный источник; если поток не найдётся, можно настроить разрешённый источник прямо здесь.`;
   document.getElementById('details').classList.add('show');
 }
 function selectEpisode(n,btn){
@@ -148,14 +148,14 @@ async function openPlayer(){
            return;
          }
        }
-       showPopularSources(status); status.textContent='Каталог не предоставил доступный поток для этой серии. Открой одну из популярных официальных площадок ниже или добавь собственный разрешённый HTTPS-источник. Доступность зависит от региона и лицензии.';
+       showPopularSources(status); status.textContent='Каталог не предоставил доступный поток для этой серии. Внешние сайты не открываем. Можно подключить разрешённый HTTPS-источник в настройках плеера.';
        return;
      }catch(error){
-       showPopularSources(status); status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Ниже доступны ссылки на популярные официальные площадки; можно также добавить собственный разрешённый HTTPS-источник.';
+       showPopularSources(status); status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Внешние сайты не открываем. Можно повторить попытку позже или подключить разрешённый HTTPS-источник.';
        return;
      }
    }
-   showPopularSources(status); status.textContent=`Источник для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} не настроен. Выбери официальную площадку ниже или добавь разрешённый HTTPS-источник.`;
+   showPopularSources(status); status.textContent=`Для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} пока нет доступного потока. Внешние сайты не открываем; можно добавить разрешённый HTTPS-источник.`;
    return;
  }
  try{
