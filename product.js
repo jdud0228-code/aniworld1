@@ -228,7 +228,7 @@
     try {
       if (state.mode === 'signup') {
         const { data, error } = await state.client.auth.signUp({
-          email, password, options: { data: { display_name: displayName || email.split('@')[0] } }
+          email, password, options: { emailRedirectTo: window.location.origin, data: { display_name: displayName || email.split('@')[0] } }
         });
         if (error) throw error;
         if (data.session) status('Аккаунт создан. Добро пожаловать!', 'success');
