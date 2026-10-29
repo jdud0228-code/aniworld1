@@ -126,10 +126,17 @@ async function openPlayer(){
        const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(remoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
        if(!response.ok) throw new Error('Каталог временно недоступен ('+response.status+').');
        const release=await response.json();
-       const list=release?.player?.list||release?.player?.episodes||release?.episodes||[];
+       const rawList=release?.player?.list||release?.player?.episodes||release?.episodes||[];
+       const list=Array.isArray(rawList)?rawList:Object.entries(rawList).map(([key,value])=>({episode:value?.episode??value?.ordinal??key,...value}));
        const episode=list.find((item,index)=>Number(item.episode??item.ordinal??item.number??index+1)===Number(selectedEpisode))||list[selectedEpisode-1];
        const hls=episode?.hls||{};
-       const mediaUrl=episode?.url||episode?.src||hls.fhd||hls.hd||hls.sd||episode?.hls_1080||episode?.hls_720||episode?.hls_480;
+       let mediaUrl=episode?.url||episode?.src||hls.fhd||hls.hd||hls.sd||episode?.hls_1080||episode?.hls_720||episode?.hls_480;
+       if(typeof mediaUrl==='string'&&mediaUrl.startsWith('/')){
+         const host=release?.player?.host;
+         const hostUrl=typeof host==='string'?host:(host?.hls||host?.url||'');
+         const base=hostUrl?(hostUrl.startsWith('http')?hostUrl:'https://'+hostUrl):'';
+         if(base)mediaUrl=base.replace(/\/$/,'')+mediaUrl;
+       }
        if(mediaUrl&&typeof mediaUrl==='string'&&/^https:\/\//i.test(mediaUrl)){
          const source={url:mediaUrl,type:'video'};
          if(new URL(mediaUrl).protocol==='https:'){
