@@ -9,6 +9,82 @@
 .search-wrap{position:relative;margin-left:auto;width:min(390px,32vw)}.search-wrap .search{width:100%;margin:0;padding-right:18px}.search-results{display:none;position:absolute;right:0;top:calc(100% + 9px);width:min(760px,90vw);max-height:72vh;overflow:auto;background:#101014;border:1px solid #292833;border-radius:20px;padding:16px 18px;box-shadow:0 22px 70px #000c;z-index:22}.search-results.show{display:block}.search-caption{font-weight:950;letter-spacing:1.4px;font-size:13px;margin:4px 4px 12px;color:#eee}.search-result{display:flex;gap:13px;align-items:center;padding:12px 4px;border-bottom:1px solid #24242b;cursor:pointer}.search-result:hover{background:#1b1a22}.search-thumb{width:72px;height:88px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;font-size:29px;overflow:hidden}.search-thumb img{width:100%;height:100%;object-fit:cover}.search-info{min-width:0;flex:1}.search-info strong{display:block;font-size:15px;margin-bottom:5px}.search-info small{display:block;color:#9b9ba9;margin-bottom:7px}.tags{display:flex;gap:6px;flex-wrap:wrap}.tags span{background:#25252b;color:#c6c6ce;border-radius:8px;padding:4px 7px;font-size:11px}.search-status{font-size:12px;color:#00d6a0;margin-top:7px}.search-date{font-size:12px;color:#aaa;background:#222228;border-radius:12px;padding:5px 8px;white-space:nowrap}.search-foot{color:#aaa5b7;padding:14px 4px 2px;font-size:12px}.search-foot b{color:#ff7890}.login-dialog{padding:0;overflow:hidden;width:min(960px,100%);display:grid;grid-template-columns:1fr 1fr;position:relative}.login-art{padding:34px;background:radial-gradient(circle at 20% 80%,#6a172866,transparent 35%),linear-gradient(145deg,#160c10,#0d0e12);min-height:530px;position:relative}.login-brand{font-size:24px;font-weight:950}.login-brand span{color:#ff4565}.login-art h2{font-size:32px;line-height:1.2;margin-top:42px}.login-art p{color:#aaa2b8;line-height:1.6}.gift{position:absolute;bottom:28px;left:30px;right:30px;border:1px solid #a92a43;border-radius:17px;background:#211317;padding:18px}.gift strong{color:#ff7890;font-size:22px}.login-form{padding:42px 34px;background:#0c0c10}.login-form h2{margin:0 0 5px}.login-form .muted{color:#9b9ba9;font-size:13px;margin-bottom:22px}.auth-btn{display:block;width:100%;padding:14px;border-radius:12px;background:#1c1c22;color:#f4f4f7;margin:10px 0}.auth-divider{display:flex;align-items:center;gap:12px;color:#777;font-size:12px;margin:18px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#2b2b31;flex:1}.auth-input{width:100%;padding:14px;border-radius:12px;border:1px solid #282830;background:#19191f;color:white;margin:7px 0 15px}.auth-submit{width:100%;padding:14px;border-radius:12px;background:#ff3158;margin-top:4px}.auth-bottom{text-align:center;color:#aaa;font-size:13px;margin-top:22px}.auth-bottom a{color:#ff7890;cursor:pointer}.login-x{position:absolute;right:14px;top:12px;background:#222;border-radius:8px;padding:7px 10px;z-index:2}
 @media(max-width:1050px){.cards{grid-template-columns:repeat(4,1fr)}.poster{height:245px}.hero{height:380px}}@media(max-width:700px){.top{gap:10px;padding:0 14px}.logo{font-size:23px}.nav{display:none}.search-wrap{width:min(42vw,250px)}.search{width:100%}.wrap{padding:18px 14px 50px}.hero{padding:25px;height:400px;align-items:flex-start}.hero-note{display:none}.hero>div{position:relative;z-index:2}.hero h1{font-size:46px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.poster{height:250px}.banner-grid{grid-template-columns:1fr}.section h2{font-size:23px}.dialog-top{display:block}.dialog-poster{height:180px;width:130px;min-width:130px;margin-bottom:15px}}
 </style>
+<style id="aniworld-player-styles">
+.aw-player-status{margin:0 0 12px;padding:10px 13px;border:1px solid #33242b;border-radius:11px;background:linear-gradient(90deg,#211117,#111116);color:#ded5da;font-size:13px;line-height:1.5}
+.aw-player{--aw-pink:#ff3158;overflow:hidden;border:1px solid #393039;border-radius:18px;background:#09090d;box-shadow:0 22px 60px #0008;color:#f7f3f5}
+.aw-player-top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;background:linear-gradient(110deg,#191116,#111116 58%,#171018);border-bottom:1px solid #30262c}
+.aw-player-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.aw-player-logo{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:12px;background:linear-gradient(145deg,#ff5271,#d9143b);box-shadow:0 5px 20px #ff315844;font-size:12px;font-weight:1000;letter-spacing:-.8px}
+.aw-player-title-wrap{min-width:0}
+.aw-player-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:850}
+.aw-player-subtitle{display:block;margin-top:3px;color:#9e9298;font-size:11px}
+.aw-player-badge{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid #51303a;border-radius:99px;padding:6px 9px;color:#ff9aae;font-size:10px;font-weight:900;letter-spacing:1px}
+.aw-player-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:#ff3158;box-shadow:0 0 10px #ff3158}
+.aw-stage{position:relative;display:grid;place-items:center;aspect-ratio:16/9;min-height:240px;max-height:72vh;background:radial-gradient(ellipse at 50% 42%,#17151a,#050507 69%);outline:none}
+.aw-stage:focus-visible{box-shadow:inset 0 0 0 2px #ff3158}
+.aw-video{display:block;width:100%;height:100%;max-height:72vh;background:#030305;object-fit:contain}
+.aw-loading,.aw-error{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:linear-gradient(180deg,#060508aa,#08070bcc);color:#f5eaf0}
+.aw-loading[hidden],.aw-error[hidden],.aw-player [hidden]{display:none!important}
+.aw-spinner{width:34px;height:34px;border:3px solid #ffffff26;border-top-color:#ff3158;border-radius:50%;animation:aw-spin .8s linear infinite}
+@keyframes aw-spin{to{transform:rotate(360deg)}}
+.aw-loading-label,.aw-error-message{max-width:420px;color:#c8bcc2;font-size:13px;line-height:1.55}
+.aw-error strong{font-size:17px}
+.aw-error-action{padding:10px 15px;border-radius:10px;background:#ff3158;color:#fff;font-weight:850}
+.aw-error-action:hover{background:#ff5271}
+.aw-controls{position:absolute;z-index:3;right:0;bottom:0;left:0;padding:30px 14px 10px;background:linear-gradient(0deg,#070609f5 0%,#070609d9 62%,transparent 100%)}
+.aw-seek{display:block;width:100%;height:14px;margin:0 0 9px;border:0;appearance:none;background:transparent;cursor:pointer}
+.aw-seek::-webkit-slider-runnable-track{height:4px;border-radius:99px;background:var(--aw-track,#ffffff47)}
+.aw-seek::-moz-range-track{height:4px;border-radius:99px;background:var(--aw-track,#ffffff47)}
+.aw-seek::-webkit-slider-thumb{width:12px;height:12px;margin-top:-4px;border:2px solid #fff;border-radius:50%;appearance:none;background:#ff3158;box-shadow:0 0 0 3px #ff315833}
+.aw-seek::-moz-range-thumb{width:9px;height:9px;border:2px solid #fff;border-radius:50%;background:#ff3158;box-shadow:0 0 0 3px #ff315833}
+.aw-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.aw-toolbar-group{display:flex;align-items:center;gap:7px;min-width:0}
+.aw-icon-btn{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border:1px solid transparent;border-radius:10px;background:transparent;color:#fff;transition:background .16s,border-color .16s,transform .16s}
+.aw-icon-btn:hover,.aw-icon-btn:focus-visible{background:#ffffff17;border-color:#ffffff22;outline:none}
+.aw-icon-btn:active{transform:scale(.94)}
+.aw-icon-btn svg{display:block;width:19px;height:19px}
+.aw-play-btn{width:40px;height:40px;flex-basis:40px;border-color:#ff5975;background:#ff3158}
+.aw-play-btn:hover,.aw-play-btn:focus-visible{background:#ff5271;border-color:#ff7189}
+.aw-time{color:#f0e9ec;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.aw-time-muted{color:#aa9fa5}
+.aw-volume{display:flex;align-items:center;gap:5px}
+.aw-volume-range{width:82px;height:18px;accent-color:#ff3158}
+.aw-select{height:34px;max-width:92px;padding:0 24px 0 9px;border:1px solid #ffffff24;border-radius:9px;background:#171419;color:#f7f3f5;font-size:11px;font-weight:750}
+.aw-select:focus-visible{outline:2px solid #ff607d;outline-offset:2px}
+.aw-shortcuts{padding:6px 2px 0;text-align:right;color:#8f858b;font-size:10px;letter-spacing:.15px}
+.aw-embed-player{overflow:hidden;border:1px solid #392b33;border-radius:17px;background:#09090d;box-shadow:0 22px 55px #0007}
+.aw-embed-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;background:linear-gradient(100deg,#1b1117,#111116)}
+.aw-embed-head strong{display:block;font-size:13px}
+.aw-embed-head small{display:block;margin-top:4px;color:#a69ba1;font-size:11px;line-height:1.4}
+.aw-embed-full{padding:9px 12px;border:1px solid #49333b;border-radius:9px;background:#21161c;color:#ffd8df;font-size:12px;font-weight:800}
+.aw-embed-full:hover{border-color:#ff3158;background:#32151e}
+.aw-embed-frame{aspect-ratio:16/9;background:#030305}
+.aw-embed-frame iframe{display:block;width:100%;height:100%;min-height:240px;border:0;background:#030305}
+@media(max-width:620px){
+ .aw-player{border-radius:14px}
+ .aw-player-top{padding:10px 12px}
+ .aw-player-logo{width:32px;height:32px;flex-basis:32px}
+ .aw-player-title{font-size:12px}
+ .aw-player-badge{padding:5px 7px;font-size:9px}
+ .aw-stage{min-height:210px}
+ .aw-controls{padding:25px 9px 8px}
+ .aw-toolbar{align-items:flex-start;gap:5px}
+ .aw-toolbar-group{gap:3px;flex-wrap:wrap}
+ .aw-icon-btn{width:32px;height:32px;flex-basis:32px}
+ .aw-play-btn{width:36px;height:36px;flex-basis:36px}
+ .aw-volume-range{width:54px}
+ .aw-select{height:31px;max-width:73px;padding:0 19px 0 7px;font-size:10px}
+ .aw-time{font-size:10px}
+ .aw-shortcuts{font-size:9px}
+}
+@media(max-width:390px){
+ .aw-volume-range{width:43px}
+ .aw-toolbar{gap:2px}
+ .aw-toolbar-group{gap:1px}
+ .aw-player-badge{letter-spacing:.3px}
+ .aw-time{font-size:9px}
+}
+</style>
 </head>
 <body>
 <header class="top"><div class="logo">ANI<span>WORLD</span><i>.</i></div><nav class="nav"><a class="active" href="#home">Главная</a><a href="#anime">Аниме</a><a href="#manga">Манга</a><a href="#updates">Новинки</a></nav><div class="search-wrap"><input class="search" id="search" placeholder="⌕ Поиск аниме — название, жанр, студия..." aria-label="Поиск"><div class="search-results" id="searchResults"><div class="search-caption">♨ ПОПУЛЯРНОЕ</div><div id="searchList"></div><div class="search-foot">⌕ Введи название, жанр или студию</div></div></div><button class="login" onclick="document.getElementById('account').classList.add('show')">Войти</button></header>
@@ -33,7 +109,7 @@
 <div id="sourceAdminStatus" style="font-size:12px;color:#aeb3c2;margin-top:10px"></div>
 </div>
 <div class="player-setup" id="playerSetup" style="display:none;margin-top:16px;padding:14px;border:1px solid #343541;border-radius:14px;background:#0b0c11">
-<div id="playerStatus" style="font-size:14px;color:#c8c9d4;margin-bottom:12px">Подготовка встроенного плеера…</div>
+<div id="playerStatus" class="aw-player-status" role="status" aria-live="polite">Подготовка ANIWorld Player…</div>
 <div id="playerFrame" style="margin-top:12px"></div>
 <div id="playerControls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px">
 <button class="secondary" type="button" id="retrySourceBtn">↻ Проверить источник</button>
@@ -64,7 +140,7 @@ function render(){applyAnimeFilters();document.getElementById('new').innerHTML=d
 function setFilter(g,btn){activeAnimeGenre=g;document.querySelectorAll('#genreFilters .chip').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');applyAnimeFilters()}
 function applyAnimeFilters(){const grid=document.getElementById('ongoing');if(!grid)return;let list=data.filter(x=>x.type==='Аниме'&&(activeAnimeGenre==='Все'||x.genres.includes(activeAnimeGenre)));const y=document.getElementById('animeYear')?.value||'all';list=list.filter(x=>{const year=Number(x.year)||0;if(y==='all')return true;if(y==='old')return year>0&&year<2020;if(y==='2020-2023')return year>=2020&&year<=2023;return year===Number(y)});const sort=document.getElementById('animeSort')?.value||'popular';list.sort((a,b)=>sort==='rating'?(Number(b.score)||0)-(Number(a.score)||0):sort==='year'?(Number(b.year)||0)-(Number(a.year)||0):sort==='title'?a.title.localeCompare(b.title,'ru'):(Number(b.popularity)||0)-(Number(a.popularity)||0));grid.innerHTML=list.map(x=>card(x,data.indexOf(x))).join('');const count=document.getElementById('animeCount');if(count)count.textContent='Найдено: '+list.length}
 function showPopularSources(status){
- const frame=document.getElementById('playerFrame');frame.innerHTML='';
+ clearPlayerFrame();const frame=document.getElementById('playerFrame');
  const panel=document.createElement('div');panel.style.cssText='padding:18px;border:1px solid #343541;border-radius:14px;background:#111118';
  const title=document.createElement('h3');title.textContent='Плеер ANIWorld';title.style.marginTop='0';
  const text=document.createElement('p');text.style.cssText='color:#bbb9c8;line-height:1.6';text.textContent='Для этого тайтла не найден доступный поток. Внешние сайты не открываем. Когда будет подключён разрешённый источник видео, серия запустится здесь.';
@@ -86,115 +162,338 @@ function openDetail(i){
   document.getElementById('watchBtn').style.display=x.type==='Манга'?'none':'inline-block';
   document.getElementById('readBtn').style.display=x.type==='Манга'?'inline-block':'none';
   document.getElementById('playerSetup').style.display='none';
-  document.getElementById('playerFrame').innerHTML='';
+  clearPlayerFrame();
   document.getElementById('sourceNotice').textContent=`Выбраны: ${x.type==='Манга'?'глава':'серия'} 1 · ${selectedVoice}. ANIWorld сначала проверит доступный источник; если поток не найдётся, можно настроить разрешённый источник прямо здесь.`;
   document.getElementById('details').classList.add('show');
 }
 function selectEpisode(n,btn){
  selectedEpisode=n; document.querySelectorAll('#episodes .episode').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
  document.getElementById('sourceNotice').textContent=`Выбрана ${selectedType==='Манга'?'глава':'серия'} ${n} · озвучка ${selectedVoice}.`;
- document.getElementById('playerFrame').innerHTML='';
+ clearPlayerFrame();
  if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
 }
 function selectVoice(v,btn){
  selectedVoice=v; document.querySelectorAll('#voices .voice').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
  document.getElementById('sourceNotice').textContent=`Выбрана ${selectedType==='Манга'?'глава':'серия'} ${selectedEpisode} · озвучка ${v}.`;
- document.getElementById('playerFrame').innerHTML='';
+ clearPlayerFrame();
  if(document.getElementById('sourceAdmin').style.display!=='none') refreshSourceAdmin();
 }
-async function openPlayer(){
- if(selectedType==='Манга') return;
- const box=document.getElementById('playerSetup'), status=document.getElementById('playerStatus'), frame=document.getElementById('playerFrame');
- box.style.display='block'; frame.innerHTML='';
- status.textContent=`Проверяю источник: ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}…`;
- box.scrollIntoView({behavior:'smooth',block:'nearest'});
- await loadSharedSources();
- const saved=getSavedSource();
- if(!saved||!saved.url){
-   if(selectedRemoteCode||selectedSearchTitle){
-     try{
-       status.textContent='Получаю доступные данные серии из онлайн-каталога…';
-       let remoteCode=selectedRemoteCode;
-       if(!remoteCode){
-         const searchResponse=await fetch('/api/anilibria?action=search&query='+encodeURIComponent(selectedSearchTitle),{headers:{Accept:'application/json'},cache:'no-store'});
-         if(!searchResponse.ok) throw new Error('Онлайн-каталог временно недоступен ('+searchResponse.status+').');
-         const results=await searchResponse.json();
-         const first=Array.isArray(results)?results[0]:null;
-         remoteCode=first?.code||first?.alias||first?.id;
-       }
-       if(!remoteCode) throw new Error('Не удалось найти тайтл в онлайн-каталоге.');
-       const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(remoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
-       if(!response.ok) throw new Error('Каталог временно недоступен ('+response.status+').');
-       const release=await response.json();
-       const rawList=release?.player?.list||release?.player?.episodes||release?.episodes||[];
-       const list=Array.isArray(rawList)?rawList:Object.entries(rawList).map(([key,value])=>({episode:value?.episode??value?.ordinal??key,...value}));
-       const episode=list.find((item,index)=>Number(item.episode??item.ordinal??item.number??index+1)===Number(selectedEpisode))||list[selectedEpisode-1];
-       const hls=episode?.hls||{};
-       // Prefer 720p first, keep other published renditions as fallbacks.
-       const mediaCandidates=[episode?.url,episode?.src,hls.hd,hls.sd,hls.fhd,episode?.hls_720,episode?.hls_480,episode?.hls_1080].filter((url,index,all)=>typeof url==='string'&&/^https:\/\//i.test(url)&&all.indexOf(url)===index);
-       // Hls.js must only receive HLS manifests, never MP4/WebM or other direct media URLs.
-       const hlsCandidates=mediaCandidates.filter(url=>/\.m3u8(?:[?#]|$)/i.test(url));
-       let mediaUrl=mediaCandidates[0];
-       if(typeof mediaUrl==='string'&&mediaUrl.startsWith('/')){
-         const host=release?.player?.host;
-         const hostUrl=typeof host==='string'?host:(host?.hls||host?.url||'');
-         const base=hostUrl?(hostUrl.startsWith('http')?hostUrl:'https://'+hostUrl):'';
-         if(base)mediaUrl=base.replace(/\/$/,'')+mediaUrl;
-       }
-       if(mediaUrl&&typeof mediaUrl==='string'&&/^https:\/\//i.test(mediaUrl)){
-         const source={url:mediaUrl,type:'video'};
-         if(new URL(mediaUrl).protocol==='https:'){
-           status.textContent='Каталог вернул ссылку на медиа, но она может требовать разрешения самого источника. Проверяю воспроизведение…';
-           const video=document.createElement('video');video.controls=true;video.playsInline=true;video.autoplay=true;video.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px';frame.appendChild(video);
-           video.onerror=()=>{status.textContent='Источник не разрешил воспроизведение в браузере. Нужна разрешённая ссылка или встроенный плеер.'};
-           if(/\.m3u8(?:\?|$)/i.test(source.url)){
-             if(video.canPlayType('application/vnd.apple.mpegurl')) video.src=source.url;
-             else {
-               const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
-               script.onload=()=>{if(window.Hls&&Hls.isSupported()){const h=new Hls({enableWorker:true,lowLatencyMode:false,backBufferLength:30});let candidateIndex=0,retriedCurrent=false;h.loadSource(hlsCandidates[0]||source.url);h.attachMedia(video);h.on(Hls.Events.MANIFEST_PARSED,()=>{status.textContent='Поток найден. Плеер готов к воспроизведению; нажми ▶, если автозапуск заблокирован.';});h.on(Hls.Events.ERROR,(_,d)=>{if(!d.fatal)return;if(d.type===Hls.ErrorTypes.NETWORK_ERROR){if(!retriedCurrent){retriedCurrent=true;status.textContent='Повторяю загрузку видеопотока…';h.startLoad();return;}if(candidateIndex<hlsCandidates.length-1){candidateIndex++;retriedCurrent=false;status.textContent='Пробую альтернативное качество видео ('+(candidateIndex+1)+'/'+hlsCandidates.length+')…';h.loadSource(hlsCandidates[candidateIndex]);return;}}else if(d.type===Hls.ErrorTypes.MEDIA_ERROR){status.textContent='Восстанавливаю видеопоток…';h.recoverMediaError();return;}status.textContent='Поток найден, но источник отклонил загрузку. Возможны ограничения CORS, региона или доступа; обходить ограничения источника сайт не будет.';});}else{video.src=source.url;status.textContent='Встроенный видеопоток загружен. Если воспроизведение не начнётся, браузер может не поддерживать HLS.';}};
-               script.onerror=()=>{status.textContent='Не удалось загрузить HLS-плеер.'};document.head.appendChild(script);
-             }
-           }else video.src=source.url;
-           video.play().catch(()=>{});
-           return;
-         }
-       }
-       showPopularSources(status); status.textContent='Каталог не предоставил доступный поток для этой серии. Внешние сайты не открываем. Можно подключить разрешённый HTTPS-источник в настройках плеера.';
-       return;
-     }catch(error){
-       showPopularSources(status); status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Внешние сайты не открываем. Можно повторить попытку позже или подключить разрешённый HTTPS-источник.';
-       return;
-     }
-   }
-   showPopularSources(status); status.textContent=`Для ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice} пока нет доступного потока. Внешние сайты не открываем; можно добавить разрешённый HTTPS-источник.`;
+let activePlayerCleanup = null;
+let hlsLibraryPromise = null;
+
+function clearPlayerFrame(){
+ if(typeof activePlayerCleanup==='function'){activePlayerCleanup();activePlayerCleanup=null}
+ const frame=document.getElementById('playerFrame');
+ if(frame) frame.replaceChildren();
+}
+function setPlayerStatus(message){
+ const status=document.getElementById('playerStatus');
+ if(status) status.textContent=message;
+}
+function loadHlsLibrary(){
+ if(window.Hls) return Promise.resolve(window.Hls);
+ if(hlsLibraryPromise) return hlsLibraryPromise;
+ hlsLibraryPromise=new Promise((resolve,reject)=>{
+   const script=document.createElement('script');
+   script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
+   script.async=true;
+   script.onload=()=>window.Hls?resolve(window.Hls):reject(new Error('HLS-плеер не инициализировался.'));
+   script.onerror=()=>{hlsLibraryPromise=null;reject(new Error('Не удалось загрузить библиотеку HLS.'))};
+   document.head.appendChild(script);
+ });
+ return hlsLibraryPromise;
+}
+function playerIcon(name){
+ const paths={
+  play:'<path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.7-6.2a.8.8 0 0 0 0-1.4L9.2 5.1a.8.8 0 0 0-1.2.7Z" fill="currentColor"/>',
+  pause:'<path d="M7 5.5h3.3v13H7zM13.7 5.5H17v13h-3.3z" fill="currentColor"/>',
+  back:'<path d="M8.5 7.5H4.8V3.8M5.1 7.3A8 8 0 1 1 4 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v4l2.8 1.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  forward:'<path d="M15.5 7.5h3.7V3.8M18.9 7.3A8 8 0 1 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v4l-2.8 1.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  volume:'<path d="M4 9v6h4l5 4V5L8 9H4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M16 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  muted:'<path d="M4 9v6h4l5 4V5L8 9H4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m16 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  fullscreen:'<path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  pip:'<rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="12" y="12" width="6" height="4" rx=".8" fill="currentColor"/>'
+ };
+ return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(paths[name]||'')+'</svg>';
+}
+function playerButton(label,icon,className){
+ const button=document.createElement('button');
+ button.type='button';button.className=className||'aw-icon-btn';button.setAttribute('aria-label',label);button.title=label;button.innerHTML=playerIcon(icon);
+ return button;
+}
+function formatPlayerTime(value){
+ if(!Number.isFinite(value)||value<0)return '0:00';
+ const seconds=Math.floor(value),hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),remainder=seconds%60;
+ return hours?hours+':'+String(minutes).padStart(2,'0')+':'+String(remainder).padStart(2,'0'):minutes+':'+String(remainder).padStart(2,'0');
+}
+function qualityLabel(level,index,levels){
+ const height=Number(level.height)||0,bitrate=Number(level.bitrate)||0;
+ let label=height?height+'p':(bitrate?Math.round(bitrate/1000)+' кбит/с':'Качество '+(index+1));
+ if(levels.some(other=>other!==level&&Number(other.height)===height&&height)) label+=' · '+Math.round(bitrate/1000)+' кбит/с';
+ return label;
+}
+function buildAniVideoPlayer(options){
+ const frame=document.getElementById('playerFrame'),title=options.title||'Видео ANIWorld',episode=options.episode||selectedEpisode;
+ const sourceUrl=options.sourceUrl,renditions=(options.renditions||[]).filter((item,index,array)=>item&&item.url&&array.findIndex(other=>other.url===item.url)===index);
+ const shell=document.createElement('section');
+ shell.className='aw-player';shell.setAttribute('role','region');shell.setAttribute('aria-label','Видеоплеер ANIWorld');
+ shell.innerHTML='<div class="aw-player-top"><div class="aw-player-brand"><span class="aw-player-logo" aria-hidden="true">ANI</span><div class="aw-player-title-wrap"><strong class="aw-player-title"></strong><small class="aw-player-subtitle"></small></div></div><span class="aw-player-badge">ANI PLAYER</span></div><div class="aw-stage" tabindex="0" aria-label="Видео. Нажми пробел, чтобы начать или приостановить"><video class="aw-video" playsinline preload="metadata"></video><div class="aw-loading" role="status"><span class="aw-spinner" aria-hidden="true"></span><span class="aw-loading-label">Подключаю поток…</span></div><div class="aw-error" role="alert" hidden><strong>Поток не загрузился</strong><span class="aw-error-message"></span><button class="aw-error-action" type="button">Повторить</button></div><div class="aw-controls"><input class="aw-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Позиция видео" aria-valuetext="0:00 из 0:00"><div class="aw-toolbar"><div class="aw-toolbar-group aw-left-controls"></div><div class="aw-toolbar-group aw-right-controls"></div></div><div class="aw-shortcuts">Пробел · воспроизведение　← → · перемотка　F · экран целиком</div></div></div>';
+ frame.appendChild(shell);
+ const stage=shell.querySelector('.aw-stage'),video=shell.querySelector('.aw-video'),loading=shell.querySelector('.aw-loading'),loadingLabel=shell.querySelector('.aw-loading-label'),errorBox=shell.querySelector('.aw-error'),errorText=shell.querySelector('.aw-error-message'),retry=shell.querySelector('.aw-error-action'),seek=shell.querySelector('.aw-seek');
+ shell.querySelector('.aw-player-title').textContent=title;
+ shell.querySelector('.aw-player-subtitle').textContent='Серия '+episode+' · ANIWorld';
+ video.setAttribute('aria-label',title+' · серия '+episode);
+ const left=shell.querySelector('.aw-left-controls'),right=shell.querySelector('.aw-right-controls');
+ const play=playerButton('Воспроизвести','play','aw-icon-btn aw-play-btn'),back=playerButton('Назад на 10 секунд','back'),forward=playerButton('Вперёд на 10 секунд','forward');
+ const current=document.createElement('span');current.className='aw-time';current.textContent='0:00';
+ const divider=document.createElement('span');divider.className='aw-time aw-time-muted';divider.textContent='/';
+ const duration=document.createElement('span');duration.className='aw-time aw-time-muted';duration.textContent='0:00';
+ left.append(play,back,forward,current,divider,duration);
+ const volumeGroup=document.createElement('div');volumeGroup.className='aw-volume';
+ const mute=playerButton('Выключить звук','volume');
+ const volume=document.createElement('input');volume.className='aw-volume-range';volume.type='range';volume.min='0';volume.max='1';volume.step='0.05';volume.value=String(video.volume);volume.setAttribute('aria-label','Громкость');volume.setAttribute('aria-valuetext','100%');
+ volumeGroup.append(mute,volume);right.append(volumeGroup);
+ const speed=document.createElement('select');speed.className='aw-select';speed.setAttribute('aria-label','Скорость воспроизведения');speed.title='Скорость';
+ [[0.5,'0.5×'],[0.75,'0.75×'],[1,'Норма'],[1.25,'1.25×'],[1.5,'1.5×'],[1.75,'1.75×'],[2,'2×']].forEach(pair=>{const option=document.createElement('option');option.value=String(pair[0]);option.textContent=pair[1];speed.appendChild(option)});
+ speed.value='1';right.append(speed);
+ const quality=document.createElement('select');quality.className='aw-select';quality.setAttribute('aria-label','Качество видео');quality.title='Качество';quality.hidden=true;right.append(quality);
+ const pip=playerButton('Картинка в картинке','pip');
+ if(!document.pictureInPictureEnabled||typeof video.requestPictureInPicture!=='function')pip.hidden=true;
+ const fullscreen=playerButton('На весь экран','fullscreen');
+ right.append(pip,fullscreen);
+ let hls=null,networkRetryCount=0,mediaRecoveryAttempted=false,pendingSeek=null,isSwitching=false,nativeQualityUrl=sourceUrl;
+ function showLoading(message){errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
+ function hideLoading(){loading.hidden=true}
+ function showError(message){loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
+ function updatePlayButton(){const playing=!video.paused&&!video.ended;play.innerHTML=playerIcon(playing?'pause':'play');play.setAttribute('aria-label',playing?'Приостановить':'Воспроизвести');play.title=playing?'Приостановить':'Воспроизвести';play.setAttribute('aria-pressed',String(playing))}
+ function updateTime(){
+  const now=Number(video.currentTime)||0,total=video.duration;
+  current.textContent=formatPlayerTime(now);duration.textContent=Number.isFinite(total)?formatPlayerTime(total):'LIVE';
+  seek.disabled=!(Number.isFinite(total)&&total>0);
+  if(Number.isFinite(total)&&total>0){
+   const percent=Math.max(0,Math.min(100,now/total*100));
+   seek.value=String(Math.round(percent*10));seek.style.setProperty('--aw-track','linear-gradient(90deg,#ff3158 0%,#ff3158 '+percent+'%,#ffffff47 '+percent+'%,#ffffff47 100%)');
+   seek.setAttribute('aria-valuetext',formatPlayerTime(now)+' из '+formatPlayerTime(total));
+  }else{seek.value='0';seek.style.setProperty('--aw-track','#ffffff47');seek.setAttribute('aria-valuetext',formatPlayerTime(now)+' · прямой эфир')}
+ }
+ function updateVolume(){
+  const muted=video.muted||video.volume===0;
+  mute.innerHTML=playerIcon(muted?'muted':'volume');mute.setAttribute('aria-label',muted?'Включить звук':'Выключить звук');mute.title=muted?'Включить звук':'Выключить звук';
+  volume.value=String(muted?0:video.volume);volume.setAttribute('aria-valuetext',Math.round((muted?0:video.volume)*100)+'%');
+ }
+ function populateQuality(){
+  const previous=quality.value,levels=hls&&Array.isArray(hls.levels)?hls.levels:[];
+  quality.replaceChildren();
+  if(levels.length>1){
+   const auto=document.createElement('option');auto.value='-1';auto.textContent='Авто';quality.appendChild(auto);
+   levels.forEach((level,index)=>{const option=document.createElement('option');option.value='level:'+index;option.textContent=qualityLabel(level,index,levels);quality.appendChild(option)});
+   quality.hidden=false;
+   quality.value=previous.startsWith('level:')&&Array.from(quality.options).some(option=>option.value===previous)?previous:'-1';
    return;
+  }
+  if(renditions.length>1){
+   renditions.forEach((rendition,index)=>{const option=document.createElement('option');option.value='rendition:'+index;option.textContent=rendition.label;quality.appendChild(option)});
+   quality.hidden=false;
+   const selected=renditions.findIndex(item=>item.url===nativeQualityUrl);
+   const wanted=previous.startsWith('rendition:')?previous:(selected>=0?'rendition:'+selected:'rendition:0');
+   quality.value=Array.from(quality.options).some(option=>option.value===wanted)?wanted:'rendition:0';
+   return;
+  }
+  quality.hidden=true;
+ }
+ function loadRendition(index){
+  const rendition=renditions[index];if(!rendition)return;
+  pendingSeek=Number(video.currentTime)||0;nativeQualityUrl=rendition.url;isSwitching=true;
+  showLoading('Переключаю качество · '+rendition.label+'…');
+  if(hls){hls.loadSource(rendition.url);return}
+  video.addEventListener('loadedmetadata',function restorePosition(){if(pendingSeek!==null){try{video.currentTime=pendingSeek}catch{}pendingSeek=null}isSwitching=false},{once:true});
+  video.src=rendition.url;video.load();
+  video.play().catch(()=>{hideLoading();setPlayerStatus('Качество переключено · нажми ▶ для воспроизведения.')});
+ }
+ quality.addEventListener('change',()=>{
+  if(quality.value.indexOf('level:')===0&&hls){hls.currentLevel=Number(quality.value.split(':')[1]);showLoading('Устанавливаю качество · '+quality.options[quality.selectedIndex].textContent+'…')}
+  else if(quality.value.indexOf('rendition:')===0)loadRendition(Number(quality.value.split(':')[1]));
+ });
+ seek.addEventListener('input',()=>{if(Number.isFinite(video.duration)&&video.duration>0)video.currentTime=(Number(seek.value)/1000)*video.duration});
+ play.addEventListener('click',()=>video.paused?video.play().catch(()=>setPlayerStatus('Браузер заблокировал запуск. Нажми ▶ ещё раз.')):video.pause());
+ back.addEventListener('click',()=>{video.currentTime=Math.max(0,(video.currentTime||0)-10)});
+ forward.addEventListener('click',()=>{if(Number.isFinite(video.duration))video.currentTime=Math.min(video.duration,(video.currentTime||0)+10);else video.currentTime=(video.currentTime||0)+10});
+ mute.addEventListener('click',()=>{if(video.muted||video.volume===0){video.muted=false;if(video.volume===0)video.volume=.55}else video.muted=true;updateVolume()});
+ volume.addEventListener('input',()=>{video.volume=Number(volume.value);video.muted=video.volume===0;updateVolume()});
+ speed.addEventListener('change',()=>{video.playbackRate=Number(speed.value);setPlayerStatus('Скорость воспроизведения · '+speed.options[speed.selectedIndex].textContent)});
+ function toggleFullscreen(){
+  if(document.fullscreenElement){document.exitFullscreen?.().catch(()=>{});return}
+  if(stage.requestFullscreen)stage.requestFullscreen().catch(()=>setPlayerStatus('Браузер не разрешил полноэкранный режим.'));
+  else if(video.webkitEnterFullscreen)video.webkitEnterFullscreen();
+  else setPlayerStatus('Полноэкранный режим не поддерживается этим браузером.');
+ }
+ function onFullscreenChange(){
+  const active=document.fullscreenElement===stage;
+  fullscreen.setAttribute('aria-label',active?'Выйти из полноэкранного режима':'На весь экран');fullscreen.title=active?'Выйти из полноэкранного режима':'На весь экран';
+ }
+ fullscreen.addEventListener('click',toggleFullscreen);document.addEventListener('fullscreenchange',onFullscreenChange);
+ pip.addEventListener('click',async()=>{
+  try{if(document.pictureInPictureElement)await document.exitPictureInPicture();else await video.requestPictureInPicture()}
+  catch{setPlayerStatus('Картинка в картинке недоступна для этого источника.')}
+ });
+ retry.addEventListener('click',event=>{event.stopPropagation();openPlayer()});
+ stage.addEventListener('click',event=>{
+  if(event.target.closest('.aw-controls,.aw-error,.aw-loading'))return;
+  if(video.paused)video.play().catch(()=>setPlayerStatus('Нажми ▶, чтобы начать воспроизведение.'));else video.pause();
+ });
+ shell.addEventListener('keydown',event=>{
+  const target=event.target;
+  if(target.closest('button,input,select,textarea,a,[contenteditable="true"]'))return;
+  const key=event.key.toLowerCase();
+  if(event.code==='Space'||key==='k'){event.preventDefault();video.paused?video.play().catch(()=>{}):video.pause()}
+  else if(key==='arrowleft'||key==='j'){event.preventDefault();video.currentTime=Math.max(0,(video.currentTime||0)-(key==='j'?10:5))}
+  else if(key==='arrowright'||key==='l'){event.preventDefault();video.currentTime=Math.min(Number.isFinite(video.duration)?video.duration:Infinity,(video.currentTime||0)+(key==='l'?10:5))}
+  else if(key==='arrowup'||key==='arrowdown'){event.preventDefault();video.muted=false;video.volume=Math.max(0,Math.min(1,video.volume+(key==='arrowup'?.05:-.05)));updateVolume()}
+  else if(key==='m'){video.muted=!video.muted;updateVolume()}
+  else if(key==='f'){event.preventDefault();toggleFullscreen()}
+  else if(key==='p'&&!pip.hidden){event.preventDefault();pip.click()}
+  else if(key==='>'||key==='.'){video.playbackRate=Math.min(2,video.playbackRate+.25);speed.value=String(video.playbackRate)}
+  else if(key==='<'||key===','){video.playbackRate=Math.max(.5,video.playbackRate-.25);speed.value=String(video.playbackRate)}
+ });
+ video.addEventListener('loadedmetadata',()=>{updateTime();if(pendingSeek!==null){try{video.currentTime=pendingSeek}catch{}pendingSeek=null}});
+ video.addEventListener('durationchange',updateTime);video.addEventListener('timeupdate',updateTime);video.addEventListener('progress',updateTime);video.addEventListener('volumechange',updateVolume);
+ video.addEventListener('play',()=>{updatePlayButton();hideLoading();setPlayerStatus('ANIWorld · воспроизведение')});
+ video.addEventListener('pause',updatePlayButton);video.addEventListener('ended',updatePlayButton);
+ video.addEventListener('playing',()=>{hideLoading();isSwitching=false;setPlayerStatus('ANIWorld · воспроизведение')});
+ video.addEventListener('canplay',()=>{hideLoading();isSwitching=false});
+ video.addEventListener('waiting',()=>{if(!video.paused)showLoading(isSwitching?'Переключаю качество…':'Буферизую видео…')});
+ video.addEventListener('stalled',()=>{if(!video.paused)showLoading('Связь с источником задерживается…')});
+ video.addEventListener('error',()=>{
+  if(!video.error)return;
+  const messages={1:'Воспроизведение остановлено.',2:'Связь с источником прервалась. Проверь доступность потока.',3:'Браузер не смог декодировать этот видеоформат.',4:'Источник не поддерживает этот формат или недоступен в браузере.'};
+  showError(messages[video.error.code]||'Не удалось воспроизвести видео. Проверьте ссылку и разрешения источника.');
+ });
+ retry.addEventListener('click',()=>openPlayer());
+ updatePlayButton();updateVolume();
+ if(!options.isHls){
+  showLoading('Подключаю видео…');video.src=sourceUrl;video.load();
+  video.play().catch(()=>{if(!video.error){hideLoading();setPlayerStatus('Нажми ▶, если браузер заблокировал автозапуск.')}});
+ }else{
+  showLoading('Подключаю HLS-поток…');
+  if(video.canPlayType('application/vnd.apple.mpegurl')){
+   video.src=sourceUrl;video.load();nativeQualityUrl=sourceUrl;populateQuality();
+   video.play().catch(()=>{if(!video.error){hideLoading();setPlayerStatus('HLS-поток подключён · нажми ▶ для запуска.')}});
+  }else{
+   loadHlsLibrary().then(HlsClass=>{
+    if(!HlsClass.isSupported())throw new Error('Этот браузер не поддерживает HLS-воспроизведение.');
+    hls=new HlsClass({enableWorker:true,lowLatencyMode:false,backBufferLength:30});
+    hls.on(HlsClass.Events.MANIFEST_PARSED,()=>{
+     populateQuality();
+     if(pendingSeek!==null){try{video.currentTime=pendingSeek}catch{}pendingSeek=null}
+     isSwitching=false;showLoading('Поток подключён · нажми ▶, если автозапуск заблокирован.');
+     video.play().catch(()=>{hideLoading();setPlayerStatus('Поток подключён · нажми ▶ для воспроизведения.')});
+    });
+    hls.on(HlsClass.Events.ERROR,(_,data)=>{
+     if(!data.fatal)return;
+     if(data.type===HlsClass.ErrorTypes.NETWORK_ERROR&&networkRetryCount<1){
+      networkRetryCount++;showLoading('Повторяю подключение к источнику…');hls.startLoad();return;
+     }
+     if(data.type===HlsClass.ErrorTypes.MEDIA_ERROR&&!mediaRecoveryAttempted){
+      mediaRecoveryAttempted=true;showLoading('Восстанавливаю видеопоток…');hls.recoverMediaError();return;
+     }
+     showError('Источник не разрешил загрузку потока. Возможны ограничения CORS, региона или доступа; обходить их ANIWorld не будет.');
+    });
+    hls.loadSource(sourceUrl);hls.attachMedia(video);
+   }).catch(error=>showError(error.message||'HLS не удалось запустить в этом браузере.'));
+  }
+ }
+ activePlayerCleanup=()=>{
+  if(hls){hls.destroy();hls=null}
+  video.pause();video.removeAttribute('src');
+  try{video.load()}catch{}
+  document.removeEventListener('fullscreenchange',onFullscreenChange);
+ };
+}
+function buildAniEmbedPlayer(url,title,episode){
+ const frame=document.getElementById('playerFrame'),shell=document.createElement('section');
+ shell.className='aw-embed-player';shell.setAttribute('role','region');shell.setAttribute('aria-label','Встроенный источник ANIWorld');
+ const head=document.createElement('div');head.className='aw-embed-head';
+ const copy=document.createElement('div'),heading=document.createElement('strong'),note=document.createElement('small');
+ heading.textContent=title+' · серия '+episode;note.textContent='Встроенный источник · просмотр остаётся внутри ANIWorld';
+ copy.append(heading,note);
+ const full=document.createElement('button');full.type='button';full.className='aw-embed-full';full.textContent='На весь экран';
+ const media=document.createElement('div');media.className='aw-embed-frame';
+ const iframe=document.createElement('iframe');iframe.src=url;iframe.title=title+' · встроенный плеер';iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';iframe.allowFullscreen=true;iframe.referrerPolicy='strict-origin-when-cross-origin';
+ const shellStatus=document.createElement('p');shellStatus.className='aw-player-status';shellStatus.setAttribute('role','status');shellStatus.textContent='Управление видео предоставляется самим встроенным источником.';
+ media.appendChild(iframe);head.append(copy,full);shell.append(head,media,shellStatus);frame.appendChild(shell);
+ full.addEventListener('click',()=>{if(media.requestFullscreen)media.requestFullscreen().catch(()=>setPlayerStatus('Браузер не разрешил полноэкранный режим.'));else setPlayerStatus('Полноэкранный режим не поддерживается этим браузером.')});
+ setPlayerStatus('Встроенный источник открыт внутри ANIWorld. Управление доступно в плеере источника.');
+}
+function getResolvedHttpsUrl(value,release){
+ if(value&&typeof value==='object')value=value.url||value.src||value.link;
+ if(typeof value!=='string'||!value.trim())return null;
+ const raw=value.trim(),host=release?.player?.host,hostText=typeof host==='string'?host:(host?.hls||host?.url||'');
+ let base=null;
+ if(hostText){try{base=new URL(/^https?:\/\//i.test(hostText)?hostText:'https://'+hostText)}catch{}}
+ try{
+  const url=/^https?:\/\//i.test(raw)?new URL(raw):(base?new URL(raw,base):null);
+  if(!url||url.protocol!=='https:'||url.username||url.password)return null;
+  return url.href;
+ }catch{return null}
+}
+async function openPlayer(){
+ if(selectedType==='Манга')return;
+ const box=document.getElementById('playerSetup'),status=document.getElementById('playerStatus');
+ box.style.display='block';clearPlayerFrame();
+ status.textContent='Проверяю источник: '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+'…';
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+ try{await loadSharedSources()}catch{}
+ const saved=getSavedSource();
+ if(saved&&saved.url){
+  try{
+   const url=new URL(saved.url);
+   if(url.protocol!=='https:')throw new Error('Нужна HTTPS-ссылка на источник.');
+   const type=saved.type==='auto'?(/\.(mp4|webm|ogg|m3u8)(?:$|[?#])/i.test(url.href)?'video':'embed'):saved.type;
+   if(type==='embed'){buildAniEmbedPlayer(url.href,selectedTitle,selectedEpisode);return}
+   const isHls=/\.m3u8(?:$|[?#])/i.test(url.href);
+   buildAniVideoPlayer({title:selectedTitle,episode:selectedEpisode,sourceUrl:url.href,isHls,renditions:[]});
+   return;
+  }catch(error){
+   showPopularSources(status);status.textContent='Источник не удалось открыть: '+error.message+' Внешние сайты не открываем.';
+   return;
+  }
+ }
+ if(!selectedRemoteCode&&!selectedSearchTitle){
+  showPopularSources(status);status.textContent='Для '+selectedTitle+' · серия '+selectedEpisode+' · '+selectedVoice+' пока нет доступного потока. Внешние сайты не открываем; можно добавить разрешённый HTTPS-источник.';
+  return;
  }
  try{
-   const u=new URL(saved.url);
-   if(u.protocol!=='https:') throw new Error('Нужна HTTPS-ссылка на источник.');
-   const type=saved.type==='auto'?(/\.(mp4|webm|ogg|m3u8)(?:$|[?#])/i.test(u.href)?'video':'embed'):saved.type;
-   if(type==='embed'){
-     const iframe=document.createElement('iframe'); iframe.src=u.href; iframe.title=`${selectedTitle} — ${selectedVoice}`; iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen'; iframe.allowFullscreen=true; iframe.referrerPolicy='strict-origin-when-cross-origin'; iframe.style.cssText='width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000'; frame.appendChild(iframe);
-     const fallback=document.createElement('a'); fallback.href=u.href; fallback.target='_blank'; fallback.rel='noopener noreferrer'; fallback.textContent='Открыть источник в новой вкладке'; fallback.style.cssText='display:inline-block;margin-top:10px;color:#ff7890;font-weight:700'; frame.appendChild(fallback);
-     status.textContent=`Встроенный источник · ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}. Если хост запрещает iframe, открой ссылку в новой вкладке.`;
-     return;
-   }
-   const v=document.createElement('video'); v.controls=true; v.playsInline=true; v.autoplay=true; v.style.cssText='width:100%;max-height:68vh;background:#000;border-radius:12px'; frame.appendChild(v);
-   v.onerror=()=>{status.textContent='Видео не загрузилось. Проверь ссылку, доступ и разрешения/CORS источника.'};
-   if(/\.m3u8(?:\?|$)/i.test(u.href)){
-     if(v.canPlayType('application/vnd.apple.mpegurl')) v.src=u.href;
-     else{
-       const script=document.createElement('script'); script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
-       script.onload=()=>{if(window.Hls&&Hls.isSupported()){const hp=new Hls();hp.loadSource(u.href);hp.attachMedia(v);hp.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)status.textContent='HLS-источник найден, но браузер не смог загрузить поток. Проверь доступ и CORS у хоста.'})}else v.src=u.href};
-       script.onerror=()=>{status.textContent='Не удалось загрузить HLS-плеер.'};
-       document.head.appendChild(script);
-     }
-   }else v.src=u.href;
-   status.textContent=`Встроенный плеер · ${selectedTitle} · серия ${selectedEpisode} · ${selectedVoice}`;
-   v.play().catch(()=>{status.textContent+=' — нажми ▶, если браузер заблокировал автозапуск.'});
- }catch(e){ status.textContent='Источник не удалось открыть: '+e.message; }
+  status.textContent='Получаю доступные данные серии из онлайн-каталога…';
+  let remoteCode=selectedRemoteCode;
+  if(!remoteCode){
+   const searchResponse=await fetch('/api/anilibria?action=search&query='+encodeURIComponent(selectedSearchTitle),{headers:{Accept:'application/json'},cache:'no-store'});
+   if(!searchResponse.ok)throw new Error('Онлайн-каталог временно недоступен ('+searchResponse.status+').');
+   const results=await searchResponse.json(),first=Array.isArray(results)?results[0]:null;
+   remoteCode=first?.code||first?.alias||first?.id;
+  }
+  if(!remoteCode)throw new Error('Не удалось найти тайтл в онлайн-каталоге.');
+  const response=await fetch('/api/anilibria?action=title&code='+encodeURIComponent(remoteCode),{headers:{Accept:'application/json'},cache:'no-store'});
+  if(!response.ok)throw new Error('Каталог временно недоступен ('+response.status+').');
+  const release=await response.json(),rawList=release?.player?.list||release?.player?.episodes||release?.episodes||[];
+  const list=Array.isArray(rawList)?rawList:Object.entries(rawList).map(([key,value])=>({episode:value?.episode??value?.ordinal??key,...value}));
+  const episode=list.find((item,index)=>Number(item.episode??item.ordinal??item.number??index+1)===Number(selectedEpisode))||list[selectedEpisode-1];
+  if(!episode)throw new Error('У каталога нет данных выбранной серии.');
+  const hls=episode.hls||{},definitions=[['1080p',hls.fhd||episode.hls_1080],['720p',hls.hd||episode.hls_720],['480p',hls.sd||episode.hls_480]];
+  const renditions=definitions.map(([label,value])=>({label,url:getResolvedHttpsUrl(value,release)})).filter(item=>item.url);
+  const directCandidates=[episode.url,episode.src].map(value=>getResolvedHttpsUrl(value,release)).filter(Boolean);
+  const direct=directCandidates.find(url=>/\.(mp4|webm|ogg)(?:$|[?#])/i.test(url)||/\.m3u8(?:$|[?#])/i.test(url))||directCandidates[0]||null;
+  let sourceUrl=null,isHls=false;
+  if(direct&&(/\.m3u8(?:$|[?#])/i.test(direct)||/\.(mp4|webm|ogg)(?:$|[?#])/i.test(direct)||!renditions.length)){
+   sourceUrl=direct;isHls=/\.m3u8(?:$|[?#])/i.test(direct);
+  }else if(renditions.length){sourceUrl=renditions[0].url;isHls=true}
+  if(!sourceUrl)throw new Error('Каталог не предоставил доступный HTTPS-поток для этой серии.');
+  if(!isHls&&renditions.some(item=>item.url===sourceUrl))isHls=true;
+  status.textContent='Запускаю ANIWorld Player…';
+  buildAniVideoPlayer({title:selectedTitle,episode:selectedEpisode,sourceUrl,isHls,renditions});
+ }catch(error){
+  showPopularSources(status);status.textContent=(error?.message||'Онлайн-каталог временно недоступен.')+' Внешние сайты не открываем. Можно повторить попытку позже или подключить разрешённый HTTPS-источник.';
+ }
 }
-
 
 let sharedSourceMap = {};
 let sharedSourcesConfigured = false;
@@ -344,13 +643,13 @@ render();
 loadSharedSources();
 document.getElementById('watchBtn').addEventListener('click',openPlayer);
 document.getElementById('retrySourceBtn').addEventListener('click',openPlayer);
-document.getElementById('closeEmbeddedPlayerBtn').addEventListener('click',()=>{document.getElementById('playerSetup').style.display='none';document.getElementById('playerFrame').innerHTML='';});
+document.getElementById('closeEmbeddedPlayerBtn').addEventListener('click',()=>{document.getElementById('playerSetup').style.display='none';clearPlayerFrame();});
 let mangaReaderRequest=0;
 document.getElementById('readBtn').addEventListener('click',openMangaReader);
 async function openMangaReader(){
  const request=++mangaReaderRequest;
  const frame=document.getElementById('playerFrame'),setup=document.getElementById('playerSetup'),statusLine=document.getElementById('playerStatus');
- setup.style.display='block';frame.innerHTML='';
+ setup.style.display='block';clearPlayerFrame();frame.innerHTML='';
  const panel=document.createElement('div');panel.style.cssText='padding:18px;border:1px solid #343541;border-radius:14px;background:#111118';
  const heading=document.createElement('h3');heading.textContent='Ридер ANIWorld · '+(selectedTitle||'Манга');heading.style.marginTop='0';
  const status=document.createElement('p');status.style.cssText='color:#bbb9c8;line-height:1.6';status.textContent='Ищу главы с русским переводом…';
