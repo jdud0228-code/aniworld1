@@ -269,6 +269,7 @@ function buildAniVideoPlayer(options){
  try{const saved=JSON.parse(localStorage.getItem(positionKey)||'null');if(Number.isFinite(Number(saved?.time)))savedPosition=Number(saved.time)}catch{}
  let resumePending=savedPosition!==null&&savedPosition>10,resumeNotice='',lastPositionSaveAt=0;
  let hls=null,networkRetryCount=0,mediaRecoveryAttempted=false,pendingSeek=resumePending?savedPosition:null,isSwitching=false,nativeQualityUrl=sourceUrl;
+ const triedRenditionUrls=new Set([sourceUrl]);
  function restorePendingSeek(){
   if(pendingSeek===null||!Number.isFinite(video.duration)||video.duration<=0)return;
   const target=pendingSeek;pendingSeek=null;
@@ -306,6 +307,18 @@ function buildAniVideoPlayer(options){
  }
   function showLoading(message){if(generation!==activePlayerGeneration)return;errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
  function hideLoading(){if(generation===activePlayerGeneration)loading.hidden=true}
+ function tryFallbackRendition(){
+  const currentIndex=renditions.findIndex(item=>item.url===nativeQualityUrl);
+  const candidates=currentIndex>=0?renditions.slice(currentIndex+1):renditions;
+  const next=candidates.find(item=>!triedRenditionUrls.has(item.url));
+  if(!next||!hls)return false;
+  const currentTime=Number(video.currentTime);
+  if(Number.isFinite(currentTime)&&currentTime>10)pendingSeek=currentTime;
+  triedRenditionUrls.add(next.url);nativeQualityUrl=next.url;networkRetryCount=0;mediaRecoveryAttempted=false;isSwitching=true;
+  showLoading('Источник не загрузился. Пробую качество '+next.label+'…');
+  hls.loadSource(next.url);
+  return true;
+ }
  function showError(message){if(generation!==activePlayerGeneration)return;loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
  function updatePlayButton(){const playing=!video.paused&&!video.ended;play.innerHTML=playerIcon(playing?'pause':'play');play.setAttribute('aria-label',playing?'Приостановить':'Воспроизвести');play.title=playing?'Приостановить':'Воспроизвести';play.setAttribute('aria-pressed',String(playing))}
  function updateTime(){
@@ -345,7 +358,7 @@ function buildAniVideoPlayer(options){
  }
  function loadRendition(index){
   const rendition=renditions[index];if(!rendition)return;
-  pendingSeek=Number(video.currentTime)||0;nativeQualityUrl=rendition.url;isSwitching=true;
+  pendingSeek=Number(video.currentTime)||pendingSeek;nativeQualityUrl=rendition.url;triedRenditionUrls.add(rendition.url);isSwitching=true;
   showLoading('Переключаю качество · '+rendition.label+'…');
   if(hls){hls.loadSource(rendition.url);return}
   video.addEventListener('loadedmetadata',function restorePosition(){restorePendingSeek();isSwitching=false},{once:true});
@@ -453,7 +466,8 @@ function buildAniVideoPlayer(options){
      if(data.type===HlsClass.ErrorTypes.MEDIA_ERROR&&!mediaRecoveryAttempted){
       mediaRecoveryAttempted=true;showLoading('Восстанавливаю видеопоток…');hls.recoverMediaError();return;
      }
-     showError('Источник не разрешил загрузку потока. Возможны ограничения CORS, региона или доступа; обходить их ANIWorld не будет.');
+     if(tryFallbackRendition())return;
+     showError('Не удалось загрузить ни один доступный вариант потока. Возможны ограничения CORS, региона или доступа; обходить их ANIWorld не будет.');
     });
     hls.loadSource(sourceUrl);hls.attachMedia(video);
    }).catch(error=>showError(error.message||'HLS не удалось запустить в этом браузере.'));
