@@ -272,22 +272,25 @@ function buildAniVideoPlayer(options){
  function restorePendingSeek(){
   if(pendingSeek===null||!Number.isFinite(video.duration)||video.duration<=0)return;
   const target=pendingSeek;pendingSeek=null;
-  if(target>10&&target<video.duration-15){
-   try{video.currentTime=target;if(resumePending){resumePending=false;resumeNotice='Продолжение с '+formatPlayerTime(target);setPlayerStatus('ANIWorld · '+resumeNotice)}}catch{resumePending=false}
+  const safeTarget=Math.max(0,Math.min(target,Math.max(0,video.duration-2)));
+  if(target>10&&safeTarget<video.duration-15){
+   try{
+    video.currentTime=safeTarget;
+    if(resumePending){
+     resumePending=false;
+     resumeNotice='Продолжение с '+formatPlayerTime(safeTarget);
+     setPlayerStatus('ANIWorld · '+resumeNotice);
+    }
+   }catch(error){
+    pendingSeek=safeTarget;
+    resumePending=false;
+   }
   }else{
    resumePending=false;
    if(target>=video.duration-15){try{localStorage.removeItem(positionKey)}catch{}}
   }
  }
- function savePlayerPosition(force){
-  if(!force&&generation!==activePlayerGeneration)return;
-  const now=Date.now(),position=Number(video.currentTime)||0,total=video.duration;
-  if(Number.isFinite(total)&&total>0&&position>=total-15){try{localStorage.removeItem(positionKey)}catch{};return}
-  if(!Number.isFinite(total)||total<=0||position<=10)return;
-  if(!force&&now-lastPositionSaveAt<5000)return;
-  try{localStorage.setItem(positionKey,JSON.stringify({time:position}));lastPositionSaveAt=now}catch{}
- }
- function showLoading(message){if(generation!==activePlayerGeneration)return;errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
+  function showLoading(message){if(generation!==activePlayerGeneration)return;errorBox.hidden=true;loading.hidden=false;loadingLabel.textContent=message||'Загружаю видео…';setPlayerStatus(message||'Загружаю видео…')}
  function hideLoading(){if(generation===activePlayerGeneration)loading.hidden=true}
  function showError(message){if(generation!==activePlayerGeneration)return;loading.hidden=true;errorBox.hidden=false;errorText.textContent=message;setPlayerStatus('Видео не загрузилось. Проверь доступность источника и его разрешения.')}
  function updatePlayButton(){const playing=!video.paused&&!video.ended;play.innerHTML=playerIcon(playing?'pause':'play');play.setAttribute('aria-label',playing?'Приостановить':'Воспроизвести');play.title=playing?'Приостановить':'Воспроизвести';play.setAttribute('aria-pressed',String(playing))}
