@@ -2,7 +2,7 @@ name: ANIWorld smoke tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/aniworld-product-mvp]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -17,35 +17,52 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Validate inline JavaScript and player resume hooks
+      - name: Validate player, product integration, and database policies
         run: |
           node <<'NODE'
           const fs = require('node:fs');
           const vm = require('node:vm');
           const assert = require('node:assert/strict');
           const html = fs.readFileSync('index.html', 'utf8');
+          const productJs = fs.readFileSync('product.js', 'utf8');
+          const configJs = fs.readFileSync('api/config.js', 'utf8').replace('export default function handler', 'function handler');
+          const migration = fs.readFileSync('supabase/migrations/20261030000100_aniworld_product_mvp.sql', 'utf8');
+
+          new vm.Script(productJs, { filename: 'product.js' });
+          new vm.Script(configJs, { filename: 'api/config.js' });
           const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)]
             .map(match => match[1])
             .filter(source => source.trim());
           assert.ok(scripts.length > 0, 'index.html should contain inline JavaScript');
           scripts.forEach((source, index) => {
-            new vm.Script(source, { filename: `index.html:inline-script-${index + 1}` });
+            new vm.Script(source, { filename: 'index.html:inline-script-' + (index + 1) });
           });
+
           const checks = [
             ['per-title/episode/voice progress key', /aniworld_watch_position_v1:/],
             ['resume position restored when metadata is ready', /loadedmetadata',\s*\(\)=>\{updateTime\(\);restorePendingSeek\(\)\}/],
             ['periodic progress saving', /timeupdate',\s*\(\)=>\{updateTime\(\);savePlayerPosition\(false\)\}/],
             ['save on pause', /pause',\s*\(\)=>\{updatePlayButton\(\);savePlayerPosition\(true\)\}/],
             ['save on page hide', /addEventListener\('pagehide',savePositionOnHide\)/],
-            ['clear progress at end', /ended',\s*\(\)=>\{updatePlayButton\(\);try\{localStorage\.removeItem\(positionKey\)\}/],
+            ['clear progress at end', /ended',\s*\(\)=>\{updatePlayButton\(\);try\{localStorage\.removeItem\(positionKey\)/],
             ['bounded resume seek', /const safeTarget=Math\.max\(0,Math\.min\(target,Math\.max\(0,video\.duration-2\)\)\)/],
             ['in-page HLS error guidance', /обходить их ANIWorld не будет/],
             ['automatic fallback after fatal HLS error', /if\(tryFallbackRendition\(\)\)return/],
-            ['fallback does not loop through previously tried variants', /candidates\.find\(item=>!triedRenditionUrls\.has\(item\.url\)\)/]
+            ['fallback does not loop through previously tried variants', /candidates\.find\(item=>!triedRenditionUrls\.has\(item\.url\)\)/],
+            ['working account form is present', /id="productAuthForm"/],
+            ['email/password signup is wired', /auth\.signUp\(/],
+            ['email/password login is wired', /auth\.signInWithPassword\(/],
+            ['watch progress is persisted to database', /from\('watch_progress'\)[\s\S]*?upsert/]
           ];
           for (const [label, pattern] of checks) {
-            assert.match(html, pattern, `Missing required player behavior: ${label}`);
+            assert.match(html + '\n' + productJs, pattern, 'Missing required behavior: ' + label);
             console.log('PASS', label);
           }
-          console.log(`PASS JavaScript syntax: ${scripts.length} inline script(s)`);
+          assert.match(migration, /alter table public\.watch_progress enable row level security/i);
+          assert.match(migration, /create policy "watchlist_select_own"[\s\S]*?\(select auth\.uid\(\)\) = user_id/);
+          assert.match(migration, /primary key \(user_id, provider, provider_code, episode_number, voice\)/);
+          assert.match(configJs, /SUPABASE_PUBLISHABLE_KEY/);
+          assert.doesNotMatch(configJs, /SUPABASE_SERVICE_ROLE_KEY/, 'Service-role key must never be exposed to the browser');
+          console.log('PASS schema RLS, composite progress key, and safe runtime config');
+          console.log('PASS JavaScript syntax: ' + scripts.length + ' inline script(s), product.js, api/config.js');
           NODE
