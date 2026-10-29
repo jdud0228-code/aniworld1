@@ -334,17 +334,66 @@ loadSharedSources();
 document.getElementById('watchBtn').addEventListener('click',openPlayer);
 document.getElementById('retrySourceBtn').addEventListener('click',openPlayer);
 document.getElementById('closeEmbeddedPlayerBtn').addEventListener('click',()=>{document.getElementById('playerSetup').style.display='none';document.getElementById('playerFrame').innerHTML='';});
-document.getElementById('readBtn').addEventListener('click',()=>{
- const frame=document.getElementById('playerFrame'),setup=document.getElementById('playerSetup');setup.style.display='block';frame.innerHTML='';
+let mangaReaderRequest=0;
+document.getElementById('readBtn').addEventListener('click',openMangaReader);
+async function openMangaReader(){
+ const request=++mangaReaderRequest;
+ const frame=document.getElementById('playerFrame'),setup=document.getElementById('playerSetup'),statusLine=document.getElementById('playerStatus');
+ setup.style.display='block';frame.innerHTML='';
  const panel=document.createElement('div');panel.style.cssText='padding:18px;border:1px solid #343541;border-radius:14px;background:#111118';
  const heading=document.createElement('h3');heading.textContent='Ридер ANIWorld · '+(selectedTitle||'Манга');heading.style.marginTop='0';
- const status=document.createElement('p');status.style.cssText='color:#bbb9c8;line-height:1.6';status.textContent='Выбрана глава '+selectedEpisode+'. Читалка остаётся на этой странице. Для показа страниц нужно подключить разрешённый источник изображений глав — каталог с обложками не содержит страницы манги.';
- const nav=document.createElement('div');nav.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px';
- const prev=document.createElement('button');prev.className='secondary';prev.textContent='← Предыдущая';prev.disabled=selectedEpisode<=1;prev.onclick=()=>{selectedEpisode=Math.max(1,selectedEpisode-1);document.querySelectorAll('#episodes .episode').forEach(b=>b.classList.toggle('active',Number(b.dataset.episode)===selectedEpisode));document.getElementById('readBtn').click()};
- const next=document.createElement('button');next.className='primary';next.textContent='Следующая →';next.disabled=selectedEpisode>=Number(data.find(x=>x.title===selectedTitle)?.eps||12);next.onclick=()=>{selectedEpisode++;document.querySelectorAll('#episodes .episode').forEach(b=>b.classList.toggle('active',Number(b.dataset.episode)===selectedEpisode));document.getElementById('readBtn').click()};
- nav.append(prev,next);panel.append(heading,status,nav);frame.appendChild(panel);
- document.getElementById('playerStatus').textContent='Встроенный ридер ANIWorld · глава '+selectedEpisode;
-});
+ const status=document.createElement('p');status.style.cssText='color:#bbb9c8;line-height:1.6';status.textContent='Ищу главы с русским переводом…';
+ const controls=document.createElement('div');controls.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0';
+ const select=document.createElement('select');select.style.cssText='max-width:100%;padding:10px;background:#20202a;color:#fff;border:1px solid #444;border-radius:8px';
+ const pages=document.createElement('div');pages.style.cssText='display:flex;flex-direction:column;align-items:center;gap:8px';
+ panel.append(heading,status,controls,pages);frame.appendChild(panel);
+ statusLine.textContent='Встроенный ридер ANIWorld · поиск русских глав';
+ try{
+   const api='https://api.mangadex.org';
+   const response=await fetch(api+'/manga?title='+encodeURIComponent(selectedTitle)+'&limit=10&order[relevance]=desc&includes[]=cover_art',{headers:{Accept:'application/json'}});
+   if(!response.ok)throw new Error('Каталог манги ответил кодом '+response.status);
+   const result=await response.json();
+   const mangas=result.data||[];
+   if(!mangas.length)throw new Error('В каталоге не нашлась эта манга. Попробуй название на английском или ромадзи.');
+   const wanted=String(selectedTitle).toLowerCase();
+   const manga=mangas.find(m=>Object.values(m.attributes?.title||{}).some(t=>String(t).toLowerCase()===wanted))||mangas[0];
+   const mangaId=manga.id;
+   status.textContent='Загружаю главы с русским переводом…';
+   const chapterResponse=await fetch(api+'/manga/'+encodeURIComponent(mangaId)+'/feed?translatedLanguage[]=ru&order[chapter]=asc&limit=100&includes[]=scanlation_group',{headers:{Accept:'application/json'}});
+   if(!chapterResponse.ok)throw new Error('Не удалось загрузить список глав ('+chapterResponse.status+').');
+   const chapterResult=await chapterResponse.json();
+   const chapters=(chapterResult.data||[]).filter(c=>c.attributes?.pages>0);
+   if(!chapters.length)throw new Error('Русских глав с доступными страницами не найдено.');
+   chapters.forEach((c,i)=>{const o=document.createElement('option');o.value=String(i);const num=c.attributes?.chapter||String(i+1);o.textContent='Глава '+num+(c.attributes?.title?' — '+c.attributes.title:'');select.appendChild(o)});
+   const preferred=Math.min(Math.max(0,selectedEpisode-1),chapters.length-1);select.value=String(preferred);
+   async function showChapter(index){
+     const chapter=chapters[Number(index)];if(!chapter)return;
+     pages.innerHTML='';status.textContent='Загружаю страницы главы '+(chapter.attributes?.chapter||index+1)+'…';
+     select.disabled=true;
+     try{
+       const at=await fetch(api+'/at-home/server/'+encodeURIComponent(chapter.id),{headers:{Accept:'application/json'}});
+       if(!at.ok)throw new Error('Сервис страниц временно недоступен ('+at.status+').');
+       const dataAt=await at.json();const hash=dataAt.chapter?.hash;const files=dataAt.chapter?.data;
+       if(!hash||!Array.isArray(files)||!files.length)throw new Error('Для этой главы нет файлов страниц.');
+       const base=dataAt.baseUrl||'https://uploads.mangadex.org';
+       files.forEach((file,i)=>{const img=document.createElement('img');img.src=base+'/data/'+encodeURIComponent(hash)+'/'+file;img.alt='Страница '+(i+1);img.loading='lazy';img.style.cssText='display:block;width:auto;max-width:100%;height:auto;max-height:none;border-radius:3px;background:#17171d';img.onerror=()=>{img.alt='Страница '+(i+1)+' недоступна';img.style.minHeight='60px'};pages.appendChild(img)});
+       status.textContent='Глава '+(chapter.attributes?.chapter||index+1)+' · '+files.length+' страниц · источник: MangaDex. Всё отображается внутри ANIWorld.';
+       selectedEpisode=Number(chapter.attributes?.chapter)||Number(index)+1;
+       document.querySelectorAll('#episodes .episode').forEach(b=>b.classList.toggle('active',Number(b.dataset.episode)===selectedEpisode));
+     }catch(err){status.textContent=err.message||'Не удалось загрузить страницы.'}
+     finally{select.disabled=false}
+   }
+   select.addEventListener('change',()=>showChapter(select.value));
+   const prev=document.createElement('button');prev.className='secondary';prev.textContent='← Предыдущая глава';prev.onclick=()=>{if(Number(select.value)>0){select.value=String(Number(select.value)-1);showChapter(select.value)}};
+   const next=document.createElement('button');next.className='primary';next.textContent='Следующая глава →';next.onclick=()=>{if(Number(select.value)<chapters.length-1){select.value=String(Number(select.value)+1);showChapter(select.value)}};
+   controls.append(prev,select,next);
+   if(request===mangaReaderRequest)await showChapter(select.value);
+ }catch(error){
+   if(request!==mangaReaderRequest)return;
+   status.textContent=(error?.message||'Каталог глав сейчас недоступен.')+' Внешние сайты не открываем. Попробуй другое название или повтори позже.';
+   const retry=document.createElement('button');retry.className='secondary';retry.textContent='Повторить поиск';retry.onclick=openMangaReader;controls.appendChild(retry);
+ }
+}
 
 async function loadRealCovers(){
   const query=`query ($search:String){ Media(search:$search,type:ANIME){ coverImage{extraLarge large} } }`;
