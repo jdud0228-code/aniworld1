@@ -29,7 +29,7 @@ The app uses the current origin as emailRedirectTo, so the matching origin must 
 
 ## Vercel environment
 
-The Vercel project should have these variables in Production, Preview and Development:
+These variables have been added to the Vercel project for Production, Preview and Development:
 
 - SUPABASE_URL — https://ovqjgpynlgazhjunosmc.supabase.co
 - SUPABASE_PUBLISHABLE_KEY — the project's Supabase publishable key
@@ -49,4 +49,4 @@ After changing environment variables, create a fresh deployment.
 
 ## Current account setup note
 
-The Auth URL Configuration is a dashboard-level project setting; it is not part of the SQL migration. It must be reviewed against the actual production alias before relying on confirmation-email redirects.
+The Auth URL Configuration is a dashboard-level project setting; it is not part of the SQL migration. It still needs to be saved in the Supabase dashboard at https://supabase.com/dashboard/project/ovqjgpynlgazhjunosmc/auth/url-configuration before relying on confirmation-email redirects. The app branch should remain a preview until Site URL and redirect allow-list are configured.
