@@ -2,7 +2,7 @@ name: ANIWorld smoke tests
 
 on:
   push:
-    branches: [main, feature/aniworld-product-mvp, feature/aniworld-password-recovery]
+    branches: [main, feature/aniworld-product-mvp, feature/aniworld-password-recovery, feature/aniworld-catalog-xss-hardening]
   pull_request:
     branches: [main]
   workflow_dispatch:
