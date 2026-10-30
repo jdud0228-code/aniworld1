@@ -18,27 +18,55 @@
   const providerCode = (meta = state.currentTitle) => slugify(meta?.providerCode || meta?.title || 'unknown-title');
 
   function setMode(mode) {
-    state.mode = mode === 'signup' ? 'signup' : 'login';
+    const validModes = ['login', 'signup', 'reset', 'newPassword'];
+    state.mode = validModes.includes(mode) ? mode : 'login';
     const signup = state.mode === 'signup';
-    if ($('productAuthTitle')) $('productAuthTitle').textContent = signup ? 'Создать аккаунт' : 'Вход в ANIWorld';
-    if ($('productAuthSubmit')) $('productAuthSubmit').textContent = signup ? 'Зарегистрироваться' : 'Войти';
-    if ($('productModeToggle')) $('productModeToggle').textContent = signup ? 'Уже есть аккаунт? Войти' : 'Создать аккаунт';
+    const reset = state.mode === 'reset';
+    const newPassword = state.mode === 'newPassword';
+
+    if ($('productAuthTitle')) $('productAuthTitle').textContent =
+      signup ? 'Создать аккаунт' :
+      reset ? 'Восстановление пароля' :
+      newPassword ? 'Новый пароль' : 'Вход в ANIWorld';
+    if ($('productAuthSubmit')) $('productAuthSubmit').textContent =
+      signup ? 'Зарегистрироваться' :
+      reset ? 'Отправить ссылку' :
+      newPassword ? 'Сохранить новый пароль' : 'Войти';
+    if ($('productModeToggle')) $('productModeToggle').textContent =
+      signup ? 'Уже есть аккаунт? Войти' : 'Назад ко входу';
     if ($('productSignupFields')) $('productSignupFields').hidden = !signup;
+    if ($('productPasswordField')) $('productPasswordField').hidden = reset;
+    if ($('productPassword')) {
+      $('productPassword').required = !reset;
+      $('productPassword').autocomplete = signup || newPassword ? 'new-password' : 'current-password';
+      $('productPassword').placeholder = newPassword ? 'Введи новый пароль' : 'Не менее 8 символов';
+    }
+    if ($('productPasswordLabel')) $('productPasswordLabel').textContent = newPassword ? 'НОВЫЙ ПАРОЛЬ' : 'ПАРОЛЬ';
     if ($('productDisplayName')) $('productDisplayName').required = signup;
-    status(signup ? 'После регистрации может понадобиться подтвердить email.' : 'Войди, чтобы синхронизировать библиотеку и просмотр.');
+    if ($('productForgotPassword')) $('productForgotPassword').hidden = state.mode !== 'login' || !state.client;
+    status(
+      signup ? 'После регистрации может понадобиться подтвердить email.' :
+      reset ? 'Укажи email, и мы отправим ссылку для сброса пароля.' :
+      newPassword ? 'Задай новый пароль для своего аккаунта.' :
+      'Войди, чтобы синхронизировать библиотеку и просмотр.'
+    );
   }
 
   function updateAuthUi() {
-    const loggedIn = Boolean(state.user);
+    const recovery = state.mode === 'newPassword';
+    const loggedIn = Boolean(state.user) && !recovery;
     const headerButton = document.querySelector('button.login');
     if (headerButton) headerButton.textContent = loggedIn ? 'Мой аккаунт' : 'Войти';
     if ($('productAuthForm')) $('productAuthForm').hidden = loggedIn;
-    if ($('productModeToggle')) $('productModeToggle').hidden = loggedIn || !state.client;
+    if ($('productModeToggle')) $('productModeToggle').hidden = loggedIn || !state.client || recovery;
+    if ($('productForgotPassword')) $('productForgotPassword').hidden = loggedIn || !state.client || state.mode !== 'login';
     if ($('productSignOut')) $('productSignOut').hidden = !loggedIn;
     if ($('productAccountPanel')) $('productAccountPanel').hidden = !loggedIn;
     if ($('productAuthTitle') && loggedIn) $('productAuthTitle').textContent = 'Моя библиотека';
-    if (!loggedIn && state.mode === 'login' && $('productAuthTitle')) $('productAuthTitle').textContent = 'Вход в ANIWorld';
-    if ($('productAccountIdentity')) $('productAccountIdentity').textContent = loggedIn ? (state.user.email || 'Вход выполнен') : '';
+    if ($('productAuthTitle') && recovery) $('productAuthTitle').textContent = 'Новый пароль';
+    if ($('productAccountIdentity')) $('productAccountIdentity').textContent =
+      loggedIn ? (state.user.email || 'Вход выполнен') :
+      recovery ? 'Установи новый пароль для продолжения' : 'Войди, чтобы синхронизировать библиотеку';
     const watchButton = $('productWatchlistBtn');
     if (watchButton) watchButton.disabled = !state.client;
   }
@@ -226,6 +254,23 @@
     const submit = $('productAuthSubmit');
     if (submit) { submit.disabled = true; submit.textContent = 'Подожди…'; }
     try {
+      if (state.mode === 'reset') {
+        const { error } = await state.client.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin
+        });
+        if (error) throw error;
+        status('Если аккаунт с таким email существует, ссылка для смены пароля уже отправлена. Проверь почту.', 'success');
+        return;
+      }
+      if (state.mode === 'newPassword') {
+        const { error } = await state.client.auth.updateUser({ password });
+        if (error) throw error;
+        if ($('productPassword')) $('productPassword').value = '';
+        setMode('login');
+        updateAuthUi();
+        status('Пароль обновлён. Ты вошёл в ANIWorld.', 'success');
+        return;
+      }
       if (state.mode === 'signup') {
         const { data, error } = await state.client.auth.signUp({
           email, password, options: { emailRedirectTo: window.location.origin, data: { display_name: displayName || email.split('@')[0] } }
@@ -239,9 +284,15 @@
         status('Ты вошёл в ANIWorld.', 'success');
       }
     } catch (error) {
-      status(error?.message || 'Не удалось выполнить вход.', 'error');
+      status(error?.message || 'Не удалось выполнить запрос.', 'error');
     } finally {
-      if (submit) { submit.disabled = false; submit.textContent = state.mode === 'signup' ? 'Зарегистрироваться' : 'Войти'; }
+      if (submit) {
+        submit.disabled = false;
+        submit.textContent =
+          state.mode === 'signup' ? 'Зарегистрироваться' :
+          state.mode === 'reset' ? 'Отправить ссылку' :
+          state.mode === 'newPassword' ? 'Сохранить новый пароль' : 'Войти';
+      }
     }
   }
 
@@ -255,6 +306,7 @@
   async function init() {
     $('productAuthForm')?.addEventListener('submit', authSubmit);
     $('productModeToggle')?.addEventListener('click', () => setMode(state.mode === 'login' ? 'signup' : 'login'));
+    $('productForgotPassword')?.addEventListener('click', () => setMode('reset'));
     $('productSignOut')?.addEventListener('click', signOut);
     $('productWatchlistBtn')?.addEventListener('click', toggleWatchlistFromDetail);
     setMode('login');
@@ -271,17 +323,16 @@
       state.client = window.supabase.createClient(config.supabaseUrl, config.publishableKey, {
         auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
       });
-      const { data, error } = await state.client.auth.getSession();
-      if (error) throw error;
-      state.user = data.session?.user || null;
-      updateAuthUi();
-      await refreshProfileAndLibrary();
-      state.client.auth.onAuthStateChange((_event, session) => {
+      state.client.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          if ($('productPassword')) $('productPassword').value = '';
+          setMode('newPassword');
+        }
         state.user = session?.user || null;
         updateAuthUi();
-        if (state.user) {
+        if (state.user && state.mode !== 'newPassword') {
           window.setTimeout(() => refreshProfileAndLibrary().catch(() => {}), 0);
-        } else {
+        } else if (!state.user) {
           $('productWatchlist')?.replaceChildren();
           if ($('productWatchlistEmpty')) {
             $('productWatchlistEmpty').hidden = false;
@@ -289,6 +340,11 @@
           }
         }
       });
+      const { data, error } = await state.client.auth.getSession();
+      if (error) throw error;
+      state.user = data.session?.user || null;
+      updateAuthUi();
+      if (state.user && state.mode !== 'newPassword') await refreshProfileAndLibrary();
       await refreshCurrentTitleButton();
     } catch (error) {
       status(error?.message || 'Не удалось подключить сервис аккаунтов.', 'error');
