@@ -2,7 +2,7 @@
 
 ## What's implemented
 
-- Supabase Auth: email/password signup and sign-in.
+- Supabase Auth: email/password signup, sign-in, and password recovery.
 - User profiles created by an auth.users trigger.
 - Per-user watchlist with statuses (planned, watching, completed, on hold, dropped).
 - Per-user watch progress keyed by title, episode and voice; progress imports into the existing local-resume mechanism.
@@ -25,7 +25,7 @@ In Supabase Dashboard → Authentication → URL Configuration set:
 - **Redirect URLs:** https://aniworld1-anime-world1.vercel.app/**
 - To test preview deployments, add: https://aniworld1-*-anime-world1.vercel.app/**
 
-The app uses the current origin as emailRedirectTo, so the matching origin must be in the allowed redirect list. Keep email confirmation enabled for production accounts.
+The app uses the current origin as emailRedirectTo for signup and password reset, so the matching origin must be in the allowed redirect list. Keep email confirmation enabled for production accounts.
 
 ## Vercel environment
 
@@ -47,6 +47,12 @@ After changing environment variables, create a fresh deployment.
 5. Add a title, change its watchlist status, save a video position, reload/sign in on another browser, and verify the list and progress sync.
 6. Verify RLS prevents one user from reading/modifying another user's records.
 
-## Current account setup note
+## Production status
 
-The Auth URL Configuration is a dashboard-level project setting; it is not part of the SQL migration. It still needs to be saved in the Supabase dashboard at https://supabase.com/dashboard/project/ovqjgpynlgazhjunosmc/auth/url-configuration before relying on confirmation-email redirects. The app branch should remain a preview until Site URL and redirect allow-list are configured.
+- Supabase Auth Site URL and production/preview redirect allow-list were entered and saved by the project owner on 2026-10-30.
+- Account MVP is merged into `main` and deployed to the production Vercel alias.
+- Password recovery sends a reset email to the user and handles the `PASSWORD_RECOVERY` event so a new password can be saved inside ANIWorld.
+
+## Security hardening
+
+The Supabase Security Advisor currently reports **Leaked Password Protection Disabled**. Enable this in Supabase Dashboard → Authentication → Passwords (HIBP / leaked password protection). This setting requires dashboard-level Auth configuration and should be enabled before inviting a large user base.
