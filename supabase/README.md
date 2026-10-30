@@ -55,4 +55,4 @@ After changing environment variables, create a fresh deployment.
 
 ## Security hardening
 
-The Supabase Security Advisor currently reports **Leaked Password Protection Disabled**. Enable this in Supabase Dashboard → Authentication → Passwords (HIBP / leaked password protection). This setting requires dashboard-level Auth configuration and should be enabled before inviting a large user base.
+The Supabase Security Advisor currently reports **Leaked Password Protection Disabled**. Supabase documents this built-in HaveIBeenPwned check as available on Pro Plan and above, so it cannot be enabled on this project's current Free plan. The signup and password-reset UI enforce an 8-character minimum, but that is not equivalent to breached-password screening. Revisit this control after upgrading the Supabase organization to Pro.
