@@ -27,6 +27,14 @@ In Supabase Dashboard → Authentication → URL Configuration set:
 
 The app uses the current origin as emailRedirectTo for signup and password reset, so the matching origin must be in the allowed redirect list. Keep email confirmation enabled for production accounts.
 
+## Email delivery — required before public launch
+
+The project's current built-in Supabase SMTP service is for development/testing only. Supabase documents that it sends only to email addresses belonging to members of the Supabase organization; messages to other addresses are rejected. Delivery is best-effort and subject to project-wide rate limits.
+
+For public ANIWorld users, configure a custom SMTP provider in Supabase Dashboard → Authentication → SMTP Settings. A provider such as Resend, Postmark, Brevo, Amazon SES or SendGrid can be used. Set the SMTP host, port, username, password and sender address there, and verify the sending domain (SPF/DKIM/DMARC) with the provider. Never put SMTP credentials in frontend code or Vercel public variables.
+
+Until custom SMTP is configured, signup confirmations and password-reset emails are not available to arbitrary public email addresses. The app's API calls are wired, but successful API acceptance does not prove email delivery.
+
 ## Vercel environment
 
 These variables have been added to the Vercel project for Production, Preview and Development:
@@ -43,7 +51,7 @@ After changing environment variables, create a fresh deployment.
 1. GET /api/config should return configured: true.
 2. Supabase REST GET /rest/v1/watchlist?select=user_id&limit=1 should return 200 and an empty array for a new database.
 3. A POST to watchlist without a signed-in user must be rejected by RLS.
-4. Create a test account using an address you control, complete email confirmation, and sign in.
+4. After custom SMTP is configured, create a test account using an address you control, complete email confirmation, and sign in.
 5. Add a title, change its watchlist status, save a video position, reload/sign in on another browser, and verify the list and progress sync.
 6. Verify RLS prevents one user from reading/modifying another user's records.
 
