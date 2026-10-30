@@ -150,7 +150,16 @@ const data=[
 {title:'Красная луна',searchTitle:'Akatsuki no Yona',type:'Манга',year:2009,genres:['Драма','Приключения'],score:'8.4',art:'✦',bg:'linear-gradient(145deg,#752d42,#211a32)',desc:'Принцесса отправляется в путешествие после дворцового переворота.',eps:250,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']},
 {title:'Сад синего пламени',searchTitle:'Ao no Hako',type:'Манга',year:2021,genres:['Романтика','Драма'],score:'8.2',art:'✦',bg:'linear-gradient(145deg,#146e87,#182347)',desc:'Романтическая история о спорте, взрослении и первой любви.',eps:180,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']}
 ];
-function card(x,i){return `<article class="card" data-title="${x.title.toLowerCase()}" data-genres="${x.genres.join(' ')}" onclick="openDetail(${i})"><div class="poster" style="--poster:${x.bg}"><span class="art">${x.cover?`<img src="${x.cover}" alt="${x.title} poster" loading="lazy">`:x.art}</span><span class="score">★ ${x.score}</span><span class="kind">${x.type.toUpperCase()}</span><strong>${x.title}</strong></div><h3>${x.title}</h3><div class="meta"><b>${x.year}</b> · ${x.type} · ${x.genres[0]}</div></article>`}
+function safeImageUrl(value){try{const url=new URL(String(value||''),window.location.href);return url.protocol==='https:'?url.href:''}catch{return ''}}
+function card(x,i){
+ const rawTitle=String(x.title||'');
+ const title=safeText(rawTitle);
+ const genres=Array.isArray(x.genres)?x.genres:[];
+ const cover=safeImageUrl(x.cover);
+ const image=cover?`<img src="${safeText(cover)}" alt="${title} poster" loading="lazy">`:safeText(x.art||'✦');
+ const kind=safeText(x.type||'Аниме');
+ return `<article class="card" data-title="${safeText(rawTitle.toLowerCase())}" data-genres="${safeText(genres.join(' '))}" onclick="openDetail(${Number.isInteger(i)?i:0})"><div class="poster" style="--poster:${safeText(x.bg||'linear-gradient(145deg,#31204d,#131b32)')}"><span class="art">${image}</span><span class="score">★ ${safeText(x.score??'—')}</span><span class="kind">${kind.toUpperCase()}</span><strong>${title}</strong></div><h3>${title}</h3><div class="meta"><b>${safeText(x.year??'—')}</b> · ${kind} · ${safeText(genres[0]||'')}</div></article>`
+}
 let activeAnimeGenre='Все';
 function render(){applyAnimeFilters();document.getElementById('new').innerHTML=data.filter(x=>x.type==='Аниме').slice().sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)).slice(0,6).map(x=>card(x,data.indexOf(x))).join('');document.getElementById('mangaCards').innerHTML=data.filter(x=>x.type==='Манга').map(x=>card(x,data.indexOf(x))).join('');document.getElementById('classic').innerHTML=data.filter(x=>x.type==='Аниме').slice().sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)).slice(0,6).map(x=>card(x,data.indexOf(x))).join('')}
 function setFilter(g,btn){activeAnimeGenre=g;document.querySelectorAll('#genreFilters .chip').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');applyAnimeFilters()}
@@ -171,11 +180,43 @@ function openDetail(i){
   document.getElementById('dtitle').textContent=x.title;
   document.getElementById('dmeta').textContent=`★ ${x.score} · ${x.year} · ${x.type} · ${x.genres.join(' / ')}`;
   document.getElementById('ddesc').textContent=x.desc;
-  document.getElementById('dposter').innerHTML=x.cover?`<img src="${x.cover}" alt="${x.title} poster">`:x.art;
-  document.getElementById('dposter').style.background=x.bg;
-  document.getElementById('episodes').innerHTML=Array.from({length:Math.min(x.eps,12)},(_,j)=>`<button class="episode ${j===0?'active':''}" data-episode="${j+1}" onclick="selectEpisode(${j+1},this)">${x.type==='Манга'?'Глава':'Серия'} ${j+1}</button>`).join('');
-  const voices=x.voices&&x.voices.length?x.voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia'];
-  document.getElementById('voices').innerHTML=voices.map((v,j)=>`<button class="voice ${j===0?'active':''}" data-voice="${v}" onclick="selectVoice(${JSON.stringify(v)},this)">${v}</button>`).join('');
+  const poster=document.getElementById('dposter');
+  poster.replaceChildren();
+  const coverUrl=safeImageUrl(x.cover);
+  if(coverUrl){
+    const image=document.createElement('img');
+    image.src=coverUrl;
+    image.alt=String(x.title||'Аниме')+' poster';
+    image.loading='lazy';
+    poster.appendChild(image);
+  }else poster.textContent=String(x.art||'✦');
+  poster.style.background=x.bg||'linear-gradient(140deg,#25252c,#15202d)';
+  const episodeContainer=document.getElementById('episodes');
+  episodeContainer.replaceChildren();
+  const episodeCount=Math.max(1,Math.min(12,Math.floor(Number(x.eps)||1)));
+  for(let j=0;j<episodeCount;j++){
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='episode'+(j===0?' active':'');
+    button.dataset.episode=String(j+1);
+    button.textContent=(x.type==='Манга'?'Глава ':'Серия ')+(j+1);
+    button.addEventListener('click',()=>selectEpisode(j+1,button));
+    episodeContainer.appendChild(button);
+  }
+  const voices=Array.isArray(x.voices)&&x.voices.length?x.voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia'];
+  const voiceContainer=document.getElementById('voices');
+  voiceContainer.replaceChildren();
+  voices.slice(0,24).forEach((value,j)=>{
+    const voice=String(value||'').trim().slice(0,80);
+    if(!voice)return;
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='voice'+(j===0?' active':'');
+    button.dataset.voice=voice;
+    button.textContent=voice;
+    button.addEventListener('click',()=>selectVoice(voice,button));
+    voiceContainer.appendChild(button);
+  });
   document.getElementById('watchBtn').style.display=x.type==='Манга'?'none':'inline-block';
   document.getElementById('readBtn').style.display=x.type==='Манга'?'inline-block':'none';
   document.getElementById('playerSetup').style.display='none';
@@ -735,7 +776,18 @@ function setFilter(g,btn){activeAnimeGenre=g;document.querySelectorAll('#genreFi
 const searchBox=document.getElementById('search'), searchResults=document.getElementById('searchResults'), searchList=document.getElementById('searchList');
 let searchRequest=0;
 function safeText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function paintLocalSearch(q=''){let matches=data.filter(x=>!q||(`${x.title} ${x.genres.join(' ')}`).toLowerCase().includes(q.toLowerCase())).slice(0,6);return matches.map(x=>`<div class="search-result" data-local-index="${data.indexOf(x)}"><div class="search-thumb" style="background:${x.bg}">${x.cover?`<img src="${x.cover}" alt="">`:x.art}</div><div class="search-info"><strong>${x.title}</strong><small>${x.title} · ${x.year}</small><div class="tags"><span>★ ${x.score}</span><span>${x.year}</span>${x.genres.slice(0,3).map(g=>`<span>${g}</span>`).join('')}</div><div class="search-status">● ${x.year>=2025?'Онгоинг':'Завершён'}</div></div><div class="search-date">▣ ${x.eps} эп.</div></div>`).join('')}
+function paintLocalSearch(q=''){
+ const query=String(q||'').toLowerCase();
+ const matches=data.filter(x=>!query||(`${x.title||''} ${Array.isArray(x.genres)?x.genres.join(' '):''}`).toLowerCase().includes(query)).slice(0,6);
+ return matches.map(x=>{
+  const title=safeText(x.title||'Без названия');
+  const genres=Array.isArray(x.genres)?x.genres:[];
+  const cover=safeImageUrl(x.cover);
+  const poster=cover?`<img src="${safeText(cover)}" alt="" loading="lazy">`:safeText(x.art||'✦');
+  const year=safeText(x.year??'—');
+  return `<div class="search-result" data-local-index="${data.indexOf(x)}"><div class="search-thumb" style="background:#191923">${poster}</div><div class="search-info"><strong>${title}</strong><small>${title} · ${year}</small><div class="tags"><span>★ ${safeText(x.score??'—')}</span><span>${year}</span>${genres.slice(0,3).map(g=>`<span>${safeText(g)}</span>`).join('')}</div><div class="search-status">● ${Number(x.year)>=2025?'Онгоинг':'Завершён'}</div></div><div class="search-date">▣ ${safeText(x.eps??'?')} эп.</div></div>`
+ }).join('')
+}
 function paintSearch(q=''){const query=q.trim();const local=paintLocalSearch(query);searchList.innerHTML=local||'<div class="search-foot">Ищу в каталоге…</div>';if(!query){if(!local)searchList.innerHTML='<div class="search-foot">⌕ Введи название, жанр или студию</div>';return}const request=++searchRequest;fetch('/api/anilibria?action=search&query='+encodeURIComponent(query)).then(r=>{if(!r.ok)throw new Error('API '+r.status);return r.json()}).then(result=>{if(request!==searchRequest||searchBox.value.trim()!==query)return;const remote=Array.isArray(result)?result:(result?.data||result?.list||result?.items||result?.titles||[]);const norm=v=>String(v||'').toLowerCase().replace(/[^a-zа-яё0-9]/gi,'');const localTitles=new Set(data.map(x=>norm(x.title)));const extra=remote.filter(x=>{const title=x?.names?.ru||x?.name?.main||x?.name||x?.title||x?.names?.main;return title&&!localTitles.has(norm(title))}).slice(0,6);const remoteHtml=extra.map(x=>{const title=x?.names?.ru||x?.name?.main||x?.name||x?.title||x?.names?.main;const remoteCode=x.code||x.alias||x.id||'';const year=x.year||'';const score=x.shikimori?.rating||x.rating?.average||'—';const poster=x.poster?.optimized?.preview||x.poster?.preview||x.poster?.src||'';const cover=poster?(poster.startsWith('http')?poster:'https://aniliberty.top'+poster):'';const eps=x.episodes_total||x.episodes?.length||'?';return `<div class="search-result" data-remote-title="${safeText(title)}" data-remote-code="${safeText(remoteCode)}" data-remote-year="${safeText(year)}" data-remote-desc="${safeText(x.description||'')}" data-remote-cover="${safeText(cover)}" data-remote-score="${safeText(score)}"><div class="search-thumb" style="background:#191923">${cover?`<img src="${safeText(cover)}" alt="">`:'✦'}</div><div class="search-info"><strong>${safeText(title)}</strong><small>${safeText(x.name?.english||x.names?.en||'Аниме')} · ${safeText(year)}</small><div class="tags"><span>★ ${safeText(score)}</span><span>${safeText(year)}</span><span>AniLiberty</span></div><div class="search-status">● Найдено в онлайн-каталоге</div></div><div class="search-date">▣ ${safeText(eps)} эп.</div></div>`}).join('');if(remoteHtml)searchList.innerHTML=local+remoteHtml;if(!local&&!remoteHtml)searchList.innerHTML='<div class="search-foot">Ничего не найдено. Попробуй другое название.</div>';}).catch(()=>{if(request===searchRequest&&!local)searchList.innerHTML='<div class="search-foot">Онлайн-поиск временно недоступен. Попробуй позже.</div>'})}
 searchList.addEventListener('click',e=>{const local=e.target.closest('[data-local-index]');if(local){openDetail(Number(local.dataset.localIndex));searchResults.classList.remove('show');return}const remote=e.target.closest('[data-remote-title]');if(remote){const title=remote.dataset.remoteTitle;let idx=data.findIndex(x=>x.title.toLowerCase()===title.toLowerCase());if(idx<0){data.push({title,remoteCode:remote.dataset.remoteCode||'',year:Number(remote.dataset.remoteYear)||2026,score:remote.dataset.remoteScore||'—',type:'Аниме',genres:['Аниме'],desc:remote.dataset.remoteDesc||'Найдено во внешнем каталоге. Доступность серий и видеопотока нужно проверить отдельно.',eps:12,art:'✦',bg:'linear-gradient(145deg,#30202d,#12141b)',cover:remote.dataset.remoteCover||'',searchTitle:title,voices:['AniLibria','AniDub','Студийная Банда','AnimeVost','Dream Cast','Reanimedia']});idx=data.length-1}openDetail(idx);searchResults.classList.remove('show')}});
 searchBox.addEventListener('focus',()=>{paintSearch(searchBox.value);searchResults.classList.add('show')});searchBox.addEventListener('input',e=>{paintSearch(e.target.value);searchResults.classList.add('show')});document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))searchResults.classList.remove('show')});paintSearch();
